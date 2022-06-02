@@ -10,7 +10,9 @@ export class FrameRate {
     start: number;
     now: number;
     then: number;
+    prev: number;
     elapsed: number;
+    delta: number;
 
     constructor(fps: number) {
         this.debug = false;
@@ -22,17 +24,22 @@ export class FrameRate {
         this.cap = 0;
         this.now = 0;
         this.elapsed = 0;
+        this.delta = 0;
 
         this.interval = 1000 / fps;
         this.then = Date.now();
+        this.prev = this.then;
         this.start = this.then;
     }
 
     tick(logic: Function | undefined) {
         // calc elapsed time since last loop
+        // get deltatime
+        this.delta = performance.now() - this.prev;
+        this.prev = performance.now();
+        // get elapse
         this.now = Date.now();
         this.elapsed = this.now - this.then;
-
         // if enough time has elapsed, draw the next frame
 
         if (this.elapsed > this.interval) {
@@ -55,6 +62,7 @@ export class FrameRate {
                 // draw relative to camera
                 ctx!.font = "30px Ariel";
                 ctx!.fillText(`FPS:${this.fps}`, 33, 50);
+                ctx!.fillText(`Delta:${this.delta}`, 33, 80);
             }
         }
     }
