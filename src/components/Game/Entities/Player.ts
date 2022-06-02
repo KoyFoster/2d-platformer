@@ -32,7 +32,7 @@ export class Player extends Entity {
                 // y-axis collision
                 this.pos.y -= this.vel.y > 0 ? this.bounds.bottom - platform.bounds.top : this.bounds.top - platform.bounds.bottom;
                 this.vel.y = 0;
-                this.grounded = this.pos.y > platform.getPosition.y;
+                this.grounded = this.pos.y < platform.getPosition.y;
             }
         });
 
@@ -59,7 +59,7 @@ export class Player extends Entity {
             if (right) this.vel.x += __speed__;
             if (jump) {
                 this.grounded = false;
-                this.vel.y += __jump__;
+                this.vel.y -= __jump__;
             }
         }
     }
