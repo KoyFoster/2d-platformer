@@ -1,0 +1,54 @@
+const path = require('path');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+    devtool: false,
+    entry: './src/index.tsx',
+
+    module: {
+        rules: [
+            {
+                test: /.(ts|tsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ["@babel/preset-env", '@babel/preset-react', '@babel/preset-typescript']
+                    }
+                }
+            },
+            {
+                test: /\.css$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'css-loader',
+                }
+            }
+        ]
+    },
+
+    resolve: {
+        extensions: ['.ts', '.tsx', '.js', '.json']
+    },
+
+    output: {
+        filename: 'bundle.js',
+        path: path.join(__dirname, 'dist'),
+    },
+    plugins: [
+        new HTMLWebpackPlugin({
+            template: './public/index.html',
+            favicon: "./public/favicon.ico",
+            manifest: "./public/manifest.json"
+        })
+    ],
+
+    devServer: {
+        static: [
+            { directory: path.resolve("dist") },
+            { directory: path.resolve("public") },
+        ],
+        compress: true,
+        port: 9000,
+    }
+}

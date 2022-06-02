@@ -1,3 +1,5 @@
+import React from 'react';
+
 interface CanvasProps {
     id: string,
     width: number,
