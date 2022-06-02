@@ -34,7 +34,8 @@ export default class Game {
     }
 
     // Game Logic
-    tick() {
+    // return ctx when in debug mode
+    tick = (debug: boolean) => {
         // backdrop
         this.ctx!.fillStyle = "#000000";
         this.ctx!.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -55,8 +56,9 @@ export default class Game {
 
         // UI
         // draw relative to camera
-        this.ctx.font = "30px Ariel";
-        this.ctx.fillText('FPS', 10, 50);
+
+        if (debug)
+            return this.ctx;
     }
 
     private onKey(ev: KeyboardEvent, down: boolean) {
