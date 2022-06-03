@@ -3,6 +3,7 @@ import { Entity } from "./Entity";
 
 export class Player extends Entity {
     private health = 92 as number;
+    private maxHealth = 92 as number;
 
     private tickDmg = 0 as number;
     private tickAmt = 0 as number;
@@ -113,19 +114,6 @@ export class Player extends Entity {
         if (right) this.vel.x += __speed__;
     }
 
-    public debug(ctx: CanvasRenderingContext2D) {
-        let basePos = 140;
-        ctx!.fillText(`Grounded:${this.grounded}`, 33, basePos);
-        ctx!.fillText(`Jumping:${this.jumping}`, 33, basePos += 30);
-        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, basePos += 30);
-        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, basePos += 30);
-        basePos += 30;
-        ctx!.fillText(`Health:${this.health}`, 33, basePos += 30);
-        ctx!.fillText(`TickDmg:${this.tickDmg}`, 33, basePos += 30);
-        ctx!.fillText(`CurTick:${this.curTick}`, 33, basePos += 30);
-        ctx!.fillText(`CurTick:${this.tickAmt}`, 33, basePos += 30);
-    }
-
     public hurt(amt: number, tickAmt: number, type: HurtType) {
         switch (type) {
             case HurtType.standard:
@@ -147,5 +135,48 @@ export class Player extends Entity {
             default:
                 break;
         }
+    }
+
+    public debug(ctx: CanvasRenderingContext2D) {
+        let basePos = 140;
+        ctx!.fillText(`Grounded:${this.grounded}`, 33, basePos);
+        ctx!.fillText(`Jumping:${this.jumping}`, 33, basePos += 30);
+        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, basePos += 30);
+        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, basePos += 30);
+        basePos += 30;
+        ctx!.fillText(`Health:${this.health}`, 33, basePos += 30);
+        ctx!.fillText(`TickDmg:${this.tickDmg}`, 33, basePos += 30);
+        ctx!.fillText(`CurTick:${this.curTick}`, 33, basePos += 30);
+        ctx!.fillText(`CurTick:${this.tickAmt}`, 33, basePos += 30);
+    }
+
+    public UI(ctx: CanvasRenderingContext2D) {
+        // Healthbar
+        const x = 500, y = 600, w = 250, h = 50;
+        const lostHp = this.tickDmg / this.maxHealth;
+        const hp = (this.health / this.maxHealth) - lostHp;
+
+        // Name
+        // ctx!.font = '30px Mars Needs Cunnilingus';
+        // ctx!.font = '30px DotumChe';
+        // ctx!.font = '30px Hachicro';
+        // ctx!.font = '30px Crypt of Tomorrow';
+        // ctx!.font = '30px 8bitoperator JVE';
+        ctx!.font = '30px Comic Sans MS';
+        ctx!.fillStyle = "white";
+        ctx!.fillText("CHAR    LV 19        HP", x - 316, y + 35);
+        if (this.tickDmg) ctx!.fillStyle = "purple";
+        ctx!.fillText(`KR ${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
+
+
+        // HP backdrop
+        ctx!.fillStyle = "red";
+        ctx!.fillRect(x, y, w, h);
+        // Lost HP
+        ctx!.fillStyle = "purple";
+        ctx!.fillRect(x, y, (w * hp) + (w * lostHp), h);
+        // True HP
+        ctx!.fillStyle = "yellow";
+        ctx!.fillRect(x, y, (w * hp), h);
     }
 }
