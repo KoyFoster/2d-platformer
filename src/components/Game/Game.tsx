@@ -6,7 +6,7 @@ export default class Game {
     private canvas = document.querySelector('canvas') as HTMLCanvasElement;
     private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
     private platforms = [] as Entity[];
-    private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.5, z: 0 };
+    private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
     private player = new Player({ x: -20, y: -100, z: 0 });
     private keys = {
         left: false,
@@ -15,13 +15,9 @@ export default class Game {
         down: false,
         jump: false,
     }
+    private prevKeys = { jump: false }
 
     public constructor() {
-        // However normal it is in game dev for up to be postive and down to be negative,
-        // Adjusting it to be suck, is too much trouble.
-        // flip y axis
-        // this.ctx.transform(1, 0, 0, -1, 0, this.canvas.height)
-
         // Input Listeners
         window.addEventListener('keydown', (e) => this.onKey(e, true));
         window.addEventListener('keyup', (e) => this.onKey(e, false));
@@ -41,19 +37,24 @@ export default class Game {
         this.ctx!.fillStyle = "#000000";
         this.ctx!.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // platforms
+        // platforms 
         this.platforms.forEach(entity => {
             entity.draw(this.ctx, this.camera);
         });
 
-        this.player.move(this.keys.left, this.keys.right, this.keys.jump, delta)
+        const jump = this.keys.jump;
+        const jumphold = (this.keys.jump && this.prevKeys.jump);
+        this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick(this.platforms, delta);
         this.player.draw(this.ctx, this.camera);
 
         // update camera on player position
         // The follow multiplier slows down the camera, causing a drag effect
         this.camera.x = Math.round(this.camera.x - (this.camera.x + this.canvas.width / 2 - this.player.getPosition.x) * __follow__.x * delta);
-        this.camera.y = Math.round(this.camera.y - (this.camera.y + this.canvas.height / 2 - this.player.getPosition.y) * __follow__.y * delta);
+        // this.camera.y = Math.round(this.camera.y - (this.camera.y + this.canvas.height / 2 - this.player.getPosition.y) * __follow__.y * delta);
+
+        // remember previous key presses
+        this.prevKeys.jump = this.keys.jump;
 
         // UI
         // draw relative to camera
@@ -61,7 +62,7 @@ export default class Game {
             return this.ctx;
     }
 
-    private onKey(ev: KeyboardEvent, down: boolean) {
+    private onKey = (ev: KeyboardEvent, down: boolean) => {
         switch (ev.key) {
             case "ArrowLeft":
             case "a":

@@ -4,6 +4,9 @@ import { Entity } from "./Entity";
 export class Player extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
     private grounded = false;
+    private jumping = 0;
+    private jump_timer = 0.66; //second
+    private static_movement = true;
 
     public constructor(pos: Vector) {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
@@ -32,36 +35,64 @@ export class Player extends Entity {
                 // y-axis collision
                 this.pos.y -= this.vel.y > 0 ? this.bounds.bottom - platform.bounds.top : this.bounds.top - platform.bounds.bottom;
                 this.vel.y = 0;
+                this.jumping = 0;
                 this.grounded = this.pos.y < platform.getPosition.y;
             }
         });
 
-        // if (this.pos.y < 0) {
-        //     this.grounded = true;
-        //     this.pos.y = 0; this.vel.y = 0;
-        // }
+        // jump decay
+        if (this.jumping > 0) {
+            this.jumping -= delta;
+        }
     }
 
-    public move(left: Boolean, right: Boolean, jump: Boolean, delta: number) {
+    public move(left: boolean, right: boolean, jump: boolean, jumphold: boolean, delta: number) {
+        console.log(jump, jumphold)
+        // console.log({ jump, notHold: !jumphold, jumping: this.jumping })
         // Apply Physics
         // not grounded
         if (!this.grounded) {
             // gravity
-            this.vel.y += __grav__ * delta;
-
+            if (this.jumping === 0)
+                this.vel.y += __grav__ * delta;
         }
         // grounded
-        else {
+        else
+        // occurances while grounded
+        // 1. Jump
+        // 2. Static Movement
+        // 3. Directional jumping or moving when jumping
+        {
             // friction
             this.vel.x *= __fric__ * delta;
-            // move
-            let speed = left || right ? __speed__ * delta : 0;
-            if (left) this.vel.x -= speed;
-            if (right) this.vel.x += speed;
-            if (jump) {
-                this.grounded = false;
-                this.vel.y -= __jump__;
+
+            // non static jump logic
+            if (!this.static_movement) { this.vel.y -= __jump__; }
+        }
+
+        // static jump logic
+        if (this.static_movement) {
+            if (this.jumping === 0 && jump && !jumphold) {
+                this.jumping = this.jump_timer;
             }
+
+            if (this.jumping > 0 && (jump || jumphold)) {
+                this.pos.y -= __jump__ * delta;
+                console.log('pos.y:', this.pos.y);
+            }
+            // this may have unintended consequences
+            else if (this.jumping !== 0) this.jumping = 0;
+        }
+
+        // static movement
+        if (this.static_movement) {
+            const speed = left || right ? __speed__ * delta : 0;
+            if (left) this.pos.x -= speed;
+            if (right) this.pos.x += speed;
+        }
+        else {
+            if (left) this.vel.x -= __speed__;
+            if (right) this.vel.x += __speed__;
         }
     }
 }
