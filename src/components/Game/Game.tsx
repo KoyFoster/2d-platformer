@@ -34,6 +34,24 @@ export default class Game {
         this.platforms.push(pl);
     }
 
+    // Deallocation boundaries: unload Entities if they leave the zone
+    deallocate() {
+        const deathBounds = 1000;
+        const remainder = [] as Entity[];
+        this.platforms.forEach(pl => {
+            if (!(pl.getPosition.x > deathBounds || pl.getPosition.x < -deathBounds ||
+                pl.getPosition.y > deathBounds || pl.getPosition.y < -deathBounds))
+                remainder.push(pl)
+        })
+        if (this.platforms.length !== remainder.length)
+            console.log('pls:', this.platforms.length, 'remainder:', remainder.length);
+        this.platforms = remainder;
+    }
+
+    debug() {
+        this.ctx!.fillText(`Entities:${this.platforms.length}`, 33, 110);
+    }
+
     // Game Logic
     // return ctx when in debug mode
     tick = (delta: number, debug: boolean) => {
@@ -63,10 +81,16 @@ export default class Game {
         // remember previous key presses
         this.prevKeys.jump = this.keys.jump;
 
+
+        // Deallocation boundaries: unload Entities if they leave the zone
+        this.deallocate();
+
         // UI
         // draw relative to camera
-        if (debug)
+        if (debug) {
+            this.debug();
             return this.ctx;
+        }
     }
 
     private onKey = (ev: KeyboardEvent, down: boolean) => {

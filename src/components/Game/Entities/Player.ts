@@ -66,7 +66,6 @@ export class Player extends Entity {
     }
 
     public move(left: boolean, right: boolean, jump: boolean, jumphold: boolean, delta: number) {
-        console.log(jump, jumphold);
         // Apply Physics: friction or gravity
         this.vel.y += __grav__ * delta;
 
@@ -80,9 +79,9 @@ export class Player extends Entity {
     }
 
     public debug(ctx: CanvasRenderingContext2D) {
-        ctx!.fillText(`Grounded:${this.grounded}`, 33, 110);
-        ctx!.fillText(`Jumping:${this.jumping}`, 33, 140);
-        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, 170);
-        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, 200);
+        ctx!.fillText(`Grounded:${this.grounded}`, 33, 140);
+        ctx!.fillText(`Jumping:${this.jumping}`, 33, 170);
+        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, 200);
+        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, 230);
     }
 }

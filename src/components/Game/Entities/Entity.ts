@@ -14,7 +14,6 @@ export abstract class Entity {
     public tick(entity: Entity[] | null, delta: number) { }
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
-        // console.log('draw:', ctx, cam)
         ctx.fillStyle = this.color;
         ctx.fillRect(
             this.pos.x - (this.size.x * 0.5) - cam.x,

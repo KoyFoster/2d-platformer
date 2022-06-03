@@ -12,7 +12,6 @@ function App() {
 
     // return doesn't run in production
     // return () => {
-    //   console.log('useEffect return ');
     //   gameInit();
     //   renderLoop();
     // }
