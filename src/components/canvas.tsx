@@ -7,5 +7,5 @@ interface CanvasProps {
 }
 
 export const Canvas = (props: CanvasProps) => {
-    return <canvas id={props.id} width={props.width} height={props.height} />;
+    return <canvas style={{ border: '1px solid #ddd', borderRadius: '4px' }} id={props.id} width={props.width} height={props.height} />;
 }

@@ -5,11 +5,17 @@ import { Canvas, gameInit, renderLoop } from './components';
 function App() {
   // On Mount
   useEffect(() => {
+    console.log('useEffect');
     // Make sure this runs once
-    return () => {
-      gameInit();
-      renderLoop();
-    }
+    gameInit();
+    renderLoop();
+
+    // return doesn't run in production
+    // return () => {
+    //   console.log('useEffect return ');
+    //   gameInit();
+    //   renderLoop();
+    // }
   }, []);
 
   return (

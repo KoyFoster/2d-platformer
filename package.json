@@ -22,7 +22,6 @@
     "start dev": "webpack serve --config webpack.config.dev.js",
     "build dev": "webpack --config webpack.config.dev.js",
     "build dev:watch": "webpack build --watch --config webpack.config.dev.js",
-
     "start prod": "webpack serve --config webpack.config.prod.js",
     "build prod": "webpack --config webpack.config.prod.js",
     "build prod:watch": "webpack build --watch --config webpack.config.prod.js"
@@ -55,6 +54,7 @@
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.73.0",
+    "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.9.1",
     "webpack-merge": "^5.8.0"

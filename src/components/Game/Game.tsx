@@ -36,6 +36,7 @@ export default class Game {
     // Game Logic
     // return ctx when in debug mode
     tick = (debug: boolean) => {
+
         // backdrop
         this.ctx!.fillStyle = "#000000";
         this.ctx!.fillRect(0, 0, this.canvas.width, this.canvas.height);
