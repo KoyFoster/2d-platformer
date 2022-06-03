@@ -7,6 +7,7 @@ export const __jump__ = 10 * __deltacomp1__ * 0.05;
 export const __grav__ = 0.9 * __deltacomp1__;
 export const __terminal__ = 0.9 * __deltacomp1__;
 export const __follow__: Vector = { x: 0.05, y: 0.1, z: 0.1 };
+export enum HurtType { standard, constant, tick };
 
 export interface Vector {
     x: number;

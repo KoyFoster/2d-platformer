@@ -7,7 +7,7 @@ let framelock = null as FrameRate | null;
 
 export const gameInit = () => {
     game = new Game();
-    framelock = new FrameRate(120);
+    framelock = new FrameRate(60);
     framelock.debug = true;
     game.loadMap(map);
 }

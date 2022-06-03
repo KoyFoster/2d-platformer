@@ -4,14 +4,20 @@ export abstract class Entity {
     protected pos: Vector;
     protected size: Vector;
     protected color: string;
+    protected solid: boolean;
 
     constructor(pos: Vector, size: Vector, color: string) {
         this.pos = pos;
         this.size = size;
         this.color = color;
+        this.solid = true;
     }
 
     public tick(entity: Entity[] | null, delta: number) { }
+
+    public affect(entity: Entity) {
+        return false;
+    }
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         ctx.fillStyle = this.color;
@@ -24,6 +30,10 @@ export abstract class Entity {
 
     public get getPosition() {
         return this.pos;
+    }
+
+    public get isSolid() {
+        return this.solid;
     }
 
     public get bounds() {

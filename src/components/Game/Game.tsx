@@ -1,5 +1,6 @@
 import { Vector, __follow__, __speed__ } from "./Lib";
 import { Entity, Player, Platform } from "./Entities"
+import { HurtBox } from "./Entities/objects/HurtBox";
 const randomcolor = require('randomcolor');
 
 export default class Game {
@@ -29,7 +30,8 @@ export default class Game {
             this.platforms.push(new Platform(row[0], row[1], 'white'));
         });
 
-        const pl = new Platform({ x: -500, y: 0, z: 0 }, { x: 20, y: 100, z: 0 }, 'green');
+        // Test HurtBox
+        const pl = new HurtBox({ x: -500, y: 0, z: 0 }, { x: 20, y: 100, z: 0 }, 'green');
         pl.setVel({ x: __speed__, y: 0, z: 0 });
         this.platforms.push(pl);
     }
@@ -43,6 +45,7 @@ export default class Game {
                 pl.getPosition.y > deathBounds || pl.getPosition.y < -deathBounds))
                 remainder.push(pl)
         })
+
         if (this.platforms.length !== remainder.length)
             console.log('pls:', this.platforms.length, 'remainder:', remainder.length);
         this.platforms = remainder;
