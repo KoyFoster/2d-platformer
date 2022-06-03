@@ -35,7 +35,7 @@ export default class Game {
 
     // Game Logic
     // return ctx when in debug mode
-    tick = (debug: boolean) => {
+    tick = (delta: number, debug: boolean) => {
 
         // backdrop
         this.ctx!.fillStyle = "#000000";
@@ -46,18 +46,17 @@ export default class Game {
             entity.draw(this.ctx, this.camera);
         });
 
-        this.player.move(this.keys.left, this.keys.right, this.keys.jump)
-        this.player.tick(this.platforms);
+        this.player.move(this.keys.left, this.keys.right, this.keys.jump, delta)
+        this.player.tick(this.platforms, delta);
         this.player.draw(this.ctx, this.camera);
 
         // update camera on player position
         // The follow multiplier slows down the camera, causing a drag effect
-        this.camera.x = Math.round(this.camera.x - (this.camera.x + this.canvas.width / 2 - this.player.getPosition.x) * __follow__.x);
-        this.camera.y = Math.round(this.camera.y - (this.camera.y + this.canvas.height / 2 - this.player.getPosition.y) * __follow__.y);
+        this.camera.x = Math.round(this.camera.x - (this.camera.x + this.canvas.width / 2 - this.player.getPosition.x) * __follow__.x * delta);
+        this.camera.y = Math.round(this.camera.y - (this.camera.y + this.canvas.height / 2 - this.player.getPosition.y) * __follow__.y * delta);
 
         // UI
         // draw relative to camera
-
         if (debug)
             return this.ctx;
     }

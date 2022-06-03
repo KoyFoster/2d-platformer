@@ -23,25 +23,24 @@ export class FrameRate {
         this.count = 0;
         this.cap = 0;
         this.now = 0;
-        this.elapsed = 0;
-        this.delta = 0;
+        this.elapsed = 0; // locked framerate delta
+        this.delta = 0; // the true delta with unlocked framerate
 
         this.interval = 1000 / fps;
-        this.then = Date.now();
+        this.then = performance.now();
         this.prev = this.then;
         this.start = this.then;
     }
 
     tick(logic: Function | undefined) {
         // calc elapsed time since last loop
-        // get deltatime
-        this.delta = performance.now() - this.prev;
-        this.prev = performance.now();
         // get elapse
-        this.now = Date.now();
+        this.now = performance.now();
         this.elapsed = this.now - this.then;
-        // if enough time has elapsed, draw the next frame
+        // get deltatime
+        this.delta = this.elapsed * (1 / 1000);
 
+        // if enough time has elapsed, draw the next frame
         if (this.elapsed > this.interval) {
 
             // Get ready for next frame by setting then=now, but...
@@ -50,7 +49,7 @@ export class FrameRate {
 
             // draw stuff here
             let ctx = null as CanvasRenderingContext2D | null;
-            if (logic) ctx = logic(this.debug)
+            if (logic) ctx = logic(this.delta, this.debug)
 
             // TESTING...Report #seconds since start and achieved fps.
             if (this.debug) {

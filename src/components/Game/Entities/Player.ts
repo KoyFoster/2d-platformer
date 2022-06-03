@@ -9,8 +9,8 @@ export class Player extends Entity {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
     }
 
-    public tick(platforms: Entity[]) {
-        this.pos.x += this.vel.x;
+    public tick(platforms: Entity[], delta: number) {
+        this.pos.x += this.vel.x * delta;
 
         // Collision        
         // note: For all this to function properly. Y needs to be handled separatelyfrom X
@@ -25,7 +25,7 @@ export class Player extends Entity {
         });
 
         // Y
-        this.pos.y += this.vel.y;
+        this.pos.y += this.vel.y * delta;
         this.grounded = false;
         platforms.forEach(platform => {
             if (this.checkCollision(platform)) {
@@ -42,21 +42,22 @@ export class Player extends Entity {
         // }
     }
 
-    public move(left: Boolean, right: Boolean, jump: Boolean) {
+    public move(left: Boolean, right: Boolean, jump: Boolean, delta: number) {
         // Apply Physics
         // not grounded
         if (!this.grounded) {
             // gravity
-            this.vel.y += __grav__;
+            this.vel.y += __grav__ * delta;
 
         }
         // grounded
         else {
             // friction
-            this.vel.x *= __fric__;
+            this.vel.x *= __fric__ * delta;
             // move
-            if (left) this.vel.x -= __speed__;
-            if (right) this.vel.x += __speed__;
+            let speed = left || right ? __speed__ * delta : 0;
+            if (left) this.vel.x -= speed;
+            if (right) this.vel.x += speed;
             if (jump) {
                 this.grounded = false;
                 this.vel.y -= __jump__;
