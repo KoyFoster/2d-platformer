@@ -1,6 +1,6 @@
 import { Vector } from "../Lib";
 
-export class Entity {
+export abstract class Entity {
     protected pos: Vector;
     protected size: Vector;
     protected color: string;
@@ -10,6 +10,8 @@ export class Entity {
         this.size = size;
         this.color = color;
     }
+
+    public tick(entity: Entity[] | null, delta: number) { }
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         // console.log('draw:', ctx, cam)

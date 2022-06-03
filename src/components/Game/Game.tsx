@@ -1,11 +1,12 @@
-import { Vector, __follow__ } from "./Lib";
-import { Entity, Player } from "./Entities"
+import { Vector, __follow__, __speed__ } from "./Lib";
+import { Entity, Player, Platform } from "./Entities"
 const randomcolor = require('randomcolor');
 
 export default class Game {
     private canvas = document.querySelector('canvas') as HTMLCanvasElement;
     private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
     private platforms = [] as Entity[];
+    private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
     private player = new Player({ x: -20, y: -100, z: 0 });
     private keys = {
@@ -25,8 +26,12 @@ export default class Game {
 
     public loadMap(map: Vector[][]) {
         map.forEach(row => {
-            this.platforms.push(new Entity(row[0], row[1], 'white'))
-        })
+            this.platforms.push(new Platform(row[0], row[1], 'white'));
+        });
+
+        const pl = new Platform({ x: -500, y: 0, z: 0 }, { x: 20, y: 100, z: 0 }, 'green');
+        pl.setVel({ x: __speed__, y: 0, z: 0 });
+        this.platforms.push(pl);
     }
 
     // Game Logic
@@ -39,6 +44,7 @@ export default class Game {
 
         // platforms 
         this.platforms.forEach(entity => {
+            entity.tick(null, delta);
             entity.draw(this.ctx, this.camera);
         });
 
@@ -90,7 +96,7 @@ export default class Game {
     }
 
     addEntity(size: Vector, pos: Vector, color: string) {
-        this.platforms.push(new Entity(pos, size, color));
+        this.platforms.push(new Platform(pos, size, color));
     }
 
     addRandomEntity() {
