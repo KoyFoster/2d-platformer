@@ -47,6 +47,7 @@ export default class Game {
         this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick(this.platforms, delta);
         this.player.draw(this.ctx, this.camera);
+        this.player.debug(this.ctx);
 
         // update camera on player position
         // The follow multiplier slows down the camera, causing a drag effect

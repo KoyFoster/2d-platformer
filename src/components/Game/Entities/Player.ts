@@ -6,7 +6,7 @@ export class Player extends Entity {
     private grounded = false;
     private jumping = 0;
     private jump_timer = 0.66; //second
-    private static_movement = true;
+    private jump_disabled = false;
 
     public constructor(pos: Vector) {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
@@ -36,7 +36,11 @@ export class Player extends Entity {
                 this.pos.y -= this.vel.y > 0 ? this.bounds.bottom - platform.bounds.top : this.bounds.top - platform.bounds.bottom;
                 this.vel.y = 0;
                 this.jumping = 0;
-                this.grounded = this.pos.y < platform.getPosition.y;
+                const grounded = this.pos.y < platform.getPosition.y;
+                if (grounded) {
+                    this.grounded = grounded;
+                    this.jump_disabled = false;
+                }
             }
         });
 
@@ -44,55 +48,41 @@ export class Player extends Entity {
         if (this.jumping > 0) {
             this.jumping -= delta;
         }
+        else this.jumping = 0;
+    }
+
+    public jump(press: boolean, hold: boolean, delta: number) {
+        // jump release
+        if (!hold && this.jumping > 0) { this.jump_disabled = true; }
+
+        // continue jumping
+        if (hold && this.jumping > 0) this.pos.y -= __jump__ * delta;
+
+        // jump
+        if (this.grounded && press) {
+            this.vel.y -= __jump__;
+            this.jumping = this.jump_timer;
+        }
     }
 
     public move(left: boolean, right: boolean, jump: boolean, jumphold: boolean, delta: number) {
-        console.log(jump, jumphold)
-        // console.log({ jump, notHold: !jumphold, jumping: this.jumping })
-        // Apply Physics
-        // not grounded
-        if (!this.grounded) {
-            // gravity
-            if (this.jumping === 0)
-                this.vel.y += __grav__ * delta;
-        }
-        // grounded
-        else
-        // occurances while grounded
-        // 1. Jump
-        // 2. Static Movement
-        // 3. Directional jumping or moving when jumping
-        {
-            // friction
-            this.vel.x *= __fric__ * delta;
+        console.log(jump, jumphold);
+        // Apply Physics: friction or gravity
+        this.vel.y += __grav__ * delta;
 
-            // non static jump logic
-            if (!this.static_movement) { this.vel.y -= __jump__; }
-        }
+        // jump
+        this.jump(jump, jumphold, delta);
 
-        // static jump logic
-        if (this.static_movement) {
-            if (this.jumping === 0 && jump && !jumphold) {
-                this.jumping = this.jump_timer;
-            }
+        // friction should always be happening
+        this.vel.x *= __fric__ * delta;
+        if (left) this.vel.x -= __speed__;
+        if (right) this.vel.x += __speed__;
+    }
 
-            if (this.jumping > 0 && (jump || jumphold)) {
-                this.pos.y -= __jump__ * delta;
-                console.log('pos.y:', this.pos.y);
-            }
-            // this may have unintended consequences
-            else if (this.jumping !== 0) this.jumping = 0;
-        }
-
-        // static movement
-        if (this.static_movement) {
-            const speed = left || right ? __speed__ * delta : 0;
-            if (left) this.pos.x -= speed;
-            if (right) this.pos.x += speed;
-        }
-        else {
-            if (left) this.vel.x -= __speed__;
-            if (right) this.vel.x += __speed__;
-        }
+    public debug(ctx: CanvasRenderingContext2D) {
+        ctx!.fillText(`Grounded:${this.grounded}`, 33, 110);
+        ctx!.fillText(`Jumping:${this.jumping}`, 33, 140);
+        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, 170);
+        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, 200);
     }
 }
