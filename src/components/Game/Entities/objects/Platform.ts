@@ -1,8 +1,6 @@
 import { Vector } from "../../Lib";
 import { Entity } from "../Entity";
 
-
-
 export class Platform extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
 

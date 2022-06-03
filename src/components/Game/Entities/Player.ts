@@ -152,7 +152,7 @@ export class Player extends Entity {
 
     public UI(ctx: CanvasRenderingContext2D) {
         // Healthbar
-        const x = 500, y = 600, w = 250, h = 50;
+        const x = 500, y = 640, w = 250, h = 50;
         const lostHp = this.tickDmg / this.maxHealth;
         const hp = (this.health / this.maxHealth) - lostHp;
 
