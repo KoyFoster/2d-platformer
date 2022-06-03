@@ -1,4 +1,4 @@
-import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__ } from "../Lib";
+import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__, __terminal__ } from "../Lib";
 import { Entity } from "./Entity";
 
 export class Player extends Entity {
@@ -104,6 +104,8 @@ export class Player extends Entity {
     public move(left: boolean, right: boolean, jump: boolean, jumphold: boolean, delta: number) {
         // Apply Physics: friction or gravity
         this.vel.y += __grav__ * delta;
+        // terminal check: done to prevent the player from falling through platforms
+        if (this.vel.y > __terminal__) this.vel.y = __terminal__;
 
         // jump
         this.jump(jump, jumphold, delta);
