@@ -4,7 +4,7 @@ import { Player } from "../Player";
 
 export class Cage extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
-    private thickness: number = 16;
+    private thickness: number = 12;
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);

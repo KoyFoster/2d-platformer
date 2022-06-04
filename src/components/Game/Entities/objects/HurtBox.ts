@@ -10,9 +10,9 @@ export class HurtBox extends Entity {
         this.solid = false;
     }
 
-    public affect(player: Player) {
-        player.hurt(1, 0, HurtType.constant);
-        player.hurt(5, 1, HurtType.tick);
+    public affect(player: Player, delta: number) {
+        player.hurt(1, 0, HurtType.standard);
+        player.hurt(50 * delta, 1, HurtType.tick);
         return true;
     }
 

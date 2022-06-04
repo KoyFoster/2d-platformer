@@ -1,6 +1,8 @@
-import { Vector, __follow__, __speed__ } from "./Lib";
+import { Vector, __speed__ } from "./Lib";
 import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
-import cages from './Maps/cages.json'
+import cages from './Maps/cages.json';
+import seq1 from './Maps/sequences/seq_1.json';
+import { Sequence } from "./Maps/sequences";
 const randomcolor = require('randomcolor');
 
 export default class Game {
@@ -9,7 +11,7 @@ export default class Game {
     private platforms = [] as Entity[];
     private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
-    private player = new Player({ x: -20, y: -100, z: 0 });
+    private player = new Player({ x: 0, y: -100, z: 0 });
     private Cage = new Cage(cages[1][0], cages[1][1], 'white');
     private keys = {
         left: false,
@@ -24,6 +26,30 @@ export default class Game {
         // Input Listeners
         window.addEventListener('keydown', (e) => this.onKey(e, true));
         window.addEventListener('keyup', (e) => this.onKey(e, false));
+
+        // load sequences
+        this.loadSequences(seq1);
+    }
+
+    public loadSeq(seq: any) {
+
+        seq.entities.forEach((e: Vector[]) => {
+            // console.warn('new sequence', e)
+            const pl = new HurtBox(e[0], e[1], 'white');
+            pl.setVel(e[2]);
+            this.platforms.push(pl);
+        });
+    }
+
+    public loadSequences(sequences: any) {
+        sequences.forEach((seq: Sequence) => {
+            // delay
+            const time = seq.time;
+            const interval = setInterval(() => {
+                this.loadSeq(seq);
+                clearInterval(interval);
+            }, time);
+        });
     }
 
     public loadMap(map: Vector[][]) {
@@ -39,7 +65,7 @@ export default class Game {
 
     // Deallocation boundaries: unload Entities if they leave the zone
     deallocate() {
-        const deathBounds = 1000;
+        const deathBounds = 640;
         const remainder = [] as Entity[];
         this.platforms.forEach(pl => {
             if (!(pl.getPosition.x > deathBounds || pl.getPosition.x < -deathBounds ||
@@ -81,7 +107,6 @@ export default class Game {
         this.player.draw(this.ctx, this.camera);
         this.player.UI(this.ctx);
         this.player.debug(this.ctx);
-
 
         // update camera on player position
         // The follow multiplier slows down the camera, causing a drag effect

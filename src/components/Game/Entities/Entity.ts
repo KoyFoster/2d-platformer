@@ -13,9 +13,9 @@ export abstract class Entity {
         this.solid = true;
     }
 
-    public tick(entity: Entity[] | null, delta: number) { }
+    public tick(entity: Entity[] | null, delta: number | undefined) { }
 
-    public affect(entity: Entity) {
+    public affect(entity: Entity, delta: number) {
         return false;
     }
 

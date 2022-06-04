@@ -59,7 +59,7 @@ export class Player extends Entity {
         platforms.forEach(platform => {
             if (this.checkCollision(platform)) {
                 // perform entity affect on player
-                platform.affect(this);
+                platform.affect(this, delta);
 
                 // x axis collisio
                 if (platform.isSolid) {
