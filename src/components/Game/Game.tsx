@@ -79,7 +79,7 @@ export default class Game {
         this.Cage.draw(this.ctx, this.camera);
 
         this.player.draw(this.ctx, this.camera);
-        // this.player.UI(this.ctx);
+        this.player.UI(this.ctx);
         this.player.debug(this.ctx);
 
 
