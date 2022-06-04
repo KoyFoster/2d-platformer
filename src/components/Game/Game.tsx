@@ -2,6 +2,7 @@ import { Vector, __speed__ } from "./Lib";
 import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
 import cages from './Maps/cages.json';
 import seq1 from './Maps/sequences/seq_1.json';
+import seq2 from './Maps/sequences/seq_2.json';
 import { Sequence } from "./Maps/sequences";
 const randomcolor = require('randomcolor');
 
@@ -11,7 +12,7 @@ export default class Game {
     private platforms = [] as Entity[];
     private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
-    private player = new Player({ x: 0, y: -100, z: 0 });
+    private player = new Player({ x: 0, y: 80, z: 0 });
     private Cage = new Cage(cages[1][0], cages[1][1], 'white');
     private keys = {
         left: false,
@@ -28,16 +29,26 @@ export default class Game {
         window.addEventListener('keyup', (e) => this.onKey(e, false));
 
         // load sequences
-        this.loadSequences(seq1);
+        // this.loadSequences(seq1);
+        this.loadSequences(seq2);
     }
 
     public loadSeq(seq: any) {
-
-        seq.entities.forEach((e: Vector[]) => {
+        seq.entities.forEach((e: any) => {
             // console.warn('new sequence', e)
-            const pl = new HurtBox(e[0], e[1], 'white');
-            pl.setVel(e[2]);
-            this.platforms.push(pl);
+            let pl = null;
+            switch (e[0]) {
+                case "motion":
+                    pl = new HurtBox(e[1], e[2], 'white');
+                    break;
+                default:
+                    pl = new HurtBox(e[1], e[2], 'white');
+                    break;
+            }
+            if (pl !== null) {
+                pl!.setVel(e[3]);
+                this.platforms.push(pl);
+            }
         });
     }
 
