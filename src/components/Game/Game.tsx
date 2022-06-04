@@ -14,7 +14,7 @@ export default class Game {
     private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
     private player = new Player({ x: 0, y: 80, z: 0 });
-    private Cage = new Cage(cages[1][0], cages[1][1], 'white');
+    private cage = new Cage(cages[2][0], cages[2][1], 'white');
     private keys = {
         left: false,
         right: false,
@@ -31,7 +31,7 @@ export default class Game {
 
         // load sequences
         // this.loadSequences(seq1);
-        this.loadSequences(seq2);
+        this.loadSequences(seq1);
     }
 
     public loadSeq(seq: any) {
@@ -54,7 +54,10 @@ export default class Game {
     }
 
     public loadSequences(sequences: any) {
-        sequences.forEach((seq: Sequence) => {
+        // load cage
+        this.cage = new Cage(cages[sequences.cage][0], cages[sequences.cage][1], 'white');
+
+        sequences.sequence.forEach((seq: Sequence) => {
             // delay
             const time = seq.time;
             const interval = setInterval(() => {
@@ -113,8 +116,8 @@ export default class Game {
         this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick(this.platforms, delta);
         // keep player insize cage
-        this.Cage.affect(this.player);
-        this.Cage.draw(this.ctx, this.camera);
+        this.cage.affect(this.player);
+        this.cage.draw(this.ctx, this.camera);
 
         // do to player player velocity being calculated all throughout prior to this
         // we need to calculate platform affects in post in order for motion based 
