@@ -26,6 +26,8 @@ export abstract class Entity {
         return this.solid;
     }
 
+    public setAnchor(anchor: Vector) { this.anchor = anchor }
+
     public get bounds() {
         const xRad = this.size.x * this.anchor.x;
         const yRad = this.size.y * this.anchor.y;
