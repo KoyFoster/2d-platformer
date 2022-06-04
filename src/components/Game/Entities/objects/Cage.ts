@@ -36,7 +36,7 @@ export class Cage extends Entity {
         if (this.checkInside(player)) return false;
 
         // X Collision
-        let radius = ((this.thickness * 0.5 + player.getSize.x * 0.5));
+        let radius = ((this.thickness * 0.5 + player.getSize.x * player.anchor.x));
         if (player.getPosition.x < this.bounds.left + radius) {
             player.getPosition.x = this.bounds.left + radius;
             player.getVelocity.x = 0;
@@ -48,7 +48,7 @@ export class Cage extends Entity {
 
         // Y Collision
         // Bottom Collision
-        radius = ((this.thickness * 0.5 + player.getSize.y * 0.5));
+        radius = ((this.thickness * 0.5 + player.getSize.y * (1 - player.anchor.y)));
         if (player.getPosition.y > this.bounds.bottom - radius) {
             player.getPosition.y = this.bounds.bottom - radius;
             player.getVelocity.y = 0;

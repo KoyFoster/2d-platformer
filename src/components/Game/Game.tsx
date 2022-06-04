@@ -1,8 +1,7 @@
 import { Vector, __speed__ } from "./Lib";
 import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
 import cages from './Maps/cages.json';
-import seq1 from './Maps/sequences/seq_1.json';
-import seq2 from './Maps/sequences/seq_2.json';
+import seq0 from './Maps/sequences/seq_3.json';
 import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 const randomcolor = require('randomcolor');
@@ -13,7 +12,7 @@ export default class Game {
     private platforms = [] as Entity[];
     private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
-    private player = new Player({ x: 0, y: 80, z: 0 });
+    private player = new Player({ x: 0, y: 0, z: 0 });
     private cage = new Cage(cages[2][0], cages[2][1], 'white');
     private keys = {
         left: false,
@@ -30,8 +29,8 @@ export default class Game {
         window.addEventListener('keyup', (e) => this.onKey(e, false));
 
         // load sequences
-        // this.loadSequences(seq1);
-        this.loadSequences(seq1);
+        // this.loadSequences(seq0);
+        this.loadSequences(seq0);
     }
 
     public loadSeq(seq: any) {

@@ -32,6 +32,7 @@ export class Player extends Entity {
 
     public constructor(pos: Vector) {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
+        this.anchor = { x: 0.5, y: 0, z: 0.5 };
     }
 
     public tick(platforms: Entity[], delta: number) {
@@ -57,6 +58,7 @@ export class Player extends Entity {
         // X
         this.pos.x += this.vel.x * delta;
         platforms.forEach(platform => {
+            // alert(`player bounds: ${this.bounds.left}, ${this.bounds.right}, ${this.bounds.top}, ${this.bounds.bottom}`)
             if (this.checkCollision(platform)) {
                 // x axis collisio
                 if (platform.isSolid) {
