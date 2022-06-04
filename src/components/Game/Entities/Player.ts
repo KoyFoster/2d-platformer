@@ -58,9 +58,6 @@ export class Player extends Entity {
         this.pos.x += this.vel.x * delta;
         platforms.forEach(platform => {
             if (this.checkCollision(platform)) {
-                // perform entity affect on player
-                platform.affect(this, delta);
-
                 // x axis collisio
                 if (platform.isSolid) {
                     this.pos.x -= this.vel.x > 0 ? this.bounds.right - platform.bounds.left : this.bounds.left - platform.bounds.right;
@@ -74,7 +71,6 @@ export class Player extends Entity {
         this.grounded = false;
         platforms.forEach(platform => {
             if (this.checkCollision(platform)) {
-
                 if (platform.isSolid) {
                     // y-axis collision
                     this.pos.y -= this.vel.y > 0 ? this.bounds.bottom - platform.bounds.top : this.bounds.top - platform.bounds.bottom;

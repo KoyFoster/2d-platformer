@@ -4,6 +4,7 @@ import cages from './Maps/cages.json';
 import seq1 from './Maps/sequences/seq_1.json';
 import seq2 from './Maps/sequences/seq_2.json';
 import { Sequence } from "./Maps/sequences";
+import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 const randomcolor = require('randomcolor');
 
 export default class Game {
@@ -39,7 +40,7 @@ export default class Game {
             let pl = null;
             switch (e[0]) {
                 case "motion":
-                    pl = new HurtBox(e[1], e[2], 'white');
+                    pl = new HurtBox_Motion(e[1], e[2], 'blue');
                     break;
                 default:
                     pl = new HurtBox(e[1], e[2], 'white');
@@ -114,6 +115,18 @@ export default class Game {
         // keep player insize cage
         this.Cage.affect(this.player);
         this.Cage.draw(this.ctx, this.camera);
+
+        // do to player player velocity being calculated all throughout prior to this
+        // we need to calculate platform affects in post in order for motion based 
+        // affects to apply properly
+        // check affects
+        this.platforms.forEach(platform => {
+            if (this.player.checkCollision(platform)) {
+                // Done last to ensure that the final velocity affects are calculated
+                // perform entity affect on player
+                platform.affect(this.player, delta);
+            }
+        });
 
         this.player.draw(this.ctx, this.camera);
         this.player.UI(this.ctx);
