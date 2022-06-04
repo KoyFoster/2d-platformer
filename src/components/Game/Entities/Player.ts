@@ -16,10 +16,19 @@ export class Player extends Entity {
     private iframes = 500; // ms
 
     private vel: Vector = { x: 0, y: 0, z: 0 };
-    private grounded = false;
-    private jumping = 0;
+    public grounded = false;
+    public jumping = 0;
     private jump_timer = 0.66; //second
     private jump_disabled = false;
+
+    public get getVelocity() { return this.vel; }
+    public get getGrounded() { return this.grounded; }
+    public set setGround(grounded: boolean) {
+        if (grounded) {
+            this.grounded = grounded;
+            this.jump_disabled = false;
+        }
+    }
 
     public constructor(pos: Vector) {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
@@ -42,7 +51,7 @@ export class Player extends Entity {
             }
         }
 
-        // X Collision        
+        // X Collision
         // note: For all this to function properly. Y needs to be handled separatelyfrom X
         // O(2*n) complexity has to occur
         // X

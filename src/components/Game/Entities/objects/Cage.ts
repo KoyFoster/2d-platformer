@@ -4,6 +4,7 @@ import { Player } from "../Player";
 
 export class Cage extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
+    private thickness: number = 16;
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
@@ -13,6 +14,7 @@ export class Cage extends Entity {
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector): void {
         ctx!.strokeStyle = this.color;
+        ctx!.lineWidth = this.thickness;
         ctx!.rect(
             this.pos.x - (this.size.x * 0.5) - cam.x,
             this.pos.y - (this.size.y * 0.5) - cam.y,
@@ -31,27 +33,32 @@ export class Cage extends Entity {
     }
 
     public affect(player: Player) {
-        if (this.checkInside(player)) return true;
+        if (this.checkInside(player)) return false;
 
-        // if (player.getPosition.x < this.bounds.left || player.getPosition.x > this.bounds.right) {
-        //     // x axis collisiond
-        //     player.getPosition.x -= this.vel.x > 0 ? player.bounds.right + this.bounds.left : player.bounds.left + this.bounds.right;
-        //     player.getVelocity.x = 0;
-
-        // }
-        // Y Collision
-
-        if (player.getPosition.y < this.bounds.top) {
-            console.log('top');
-            player.getPosition.y = this.bounds.top - player.bounds.bottom;
-            // player.getVelocity.y = 0;
-            // player.grounded = true;
+        // X Collision
+        let radius = ((this.thickness * 0.5 + player.getSize.x * 0.5));
+        if (player.getPosition.x < this.bounds.left + radius) {
+            player.getPosition.x = this.bounds.left + radius;
+            player.getVelocity.x = 0;
         }
-        else if (player.getPosition.y > this.bounds.bottom) {
-            console.log('bottom');
-            player.getPosition.y -= this.bounds.bottom;
-            // player.getVelocity.y = 0;
-            // player.grounded = true;
+        else if (player.getPosition.x > this.bounds.right - radius) {
+            player.getPosition.x = this.bounds.right - radius;
+            player.getVelocity.x = 0;
+        }
+
+        // Y Collision
+        // Bottom Collision
+        radius = ((this.thickness * 0.5 + player.getSize.y * 0.5));
+        if (player.getPosition.y > this.bounds.bottom - radius) {
+            player.getPosition.y = this.bounds.bottom - radius;
+            player.getVelocity.y = 0;
+            player.grounded = true;
+        }
+        // Top Collision
+        else if (player.getPosition.y < this.bounds.top + radius) {
+            player.getPosition.y = this.bounds.top + radius;
+            player.getVelocity.y = 0;
+            player.jumping = 0;
         }
 
         return true;

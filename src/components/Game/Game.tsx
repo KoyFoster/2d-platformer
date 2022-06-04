@@ -1,6 +1,6 @@
 import { Vector, __follow__, __speed__ } from "./Lib";
-import { Entity, Player, Platform } from "./Entities"
-import { HurtBox } from "./Entities/objects/HurtBox";
+import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
+import cages from './Maps/cages.json'
 const randomcolor = require('randomcolor');
 
 export default class Game {
@@ -10,6 +10,7 @@ export default class Game {
     private frame = [] as Entity[];
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
     private player = new Player({ x: -20, y: -100, z: 0 });
+    private Cage = new Cage(cages[1][0], cages[1][1], 'white');
     private keys = {
         left: false,
         right: false,
@@ -63,7 +64,7 @@ export default class Game {
         this.ctx!.fillStyle = "#000000";
         this.ctx!.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // platforms 
+        // platforms
         this.platforms.forEach(entity => {
             entity.tick(null, delta);
             entity.draw(this.ctx, this.camera);
@@ -73,9 +74,14 @@ export default class Game {
         const jumphold = (this.keys.jump && this.prevKeys.jump);
         this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick(this.platforms, delta);
+        // keep player insize cage
+        this.Cage.affect(this.player);
+        this.Cage.draw(this.ctx, this.camera);
+
         this.player.draw(this.ctx, this.camera);
-        this.player.UI(this.ctx);
+        // this.player.UI(this.ctx);
         this.player.debug(this.ctx);
+
 
         // update camera on player position
         // The follow multiplier slows down the camera, causing a drag effect

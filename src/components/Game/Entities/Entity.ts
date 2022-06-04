@@ -31,6 +31,9 @@ export abstract class Entity {
     public get getPosition() {
         return this.pos;
     }
+    public get getSize() {
+        return this.size;
+    }
 
     public get isSolid() {
         return this.solid;
