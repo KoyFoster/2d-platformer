@@ -96,15 +96,16 @@ export class Player extends Entity {
 
     public jump(press: boolean, hold: boolean, delta: number) {
         // jump release
-        if (!hold && this.jumping > 0) { this.jump_disabled = true; }
+        if (!hold && this.jumping > 0) { this.vel.y = 0; this.jumping = 0; this.jump_disabled = true; }
 
         // continue jumping
-        if (hold && this.jumping > 0) this.pos.y -= __jump__ * delta;
+        if (hold && this.jumping > 0 && this.jump_disabled === false) this.pos.y -= __jump__ * delta;
 
         // jump
         if (this.grounded && press) {
             this.vel.y -= __jump__;
             this.jumping = this.jump_timer;
+            this.jump_disabled = false;
         }
     }
 
