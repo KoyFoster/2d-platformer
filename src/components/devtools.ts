@@ -24,28 +24,44 @@ export class DevTools {
     cmdState: CmdState;
     subCmd: SubCmd;
 
-    anchorType: Anchors;
-    pos: Vector | null;
-    end: Vector | null;
-    vel: Vector | null;
-    size: Vector | null;
+    anchor: Vector;
+    pos: Vector;
+    vel: Vector;
+    size: Vector;
 
-    previewEntity = new BaseObject({ x: 0, y: 0, z: 0 }, { x: 10, y: 10, z: 0 }, 'green') as BaseObject;
+    previewEntity = null as BaseObject | null;
 
     // states
     lockAxis: boolean; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
+        let lastObject = localStorage.getItem('lastObject') as Entity_Object | string | null;
+        lastObject = lastObject ? JSON.parse(lastObject as string) as Entity_Object | null : null;
+
+        console.warn('lastObject:', lastObject)
+
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
-        this.anchorType = Anchors.CENTER;
-        this.pos = null
-        this.end = null
-        this.vel = null
-        this.size = null
+
+        if (lastObject) {
+            this.anchor = lastObject.anchor;
+            this.pos = lastObject.pos;
+            this.size = lastObject.size;
+            this.vel = lastObject.vel;
+        }
+        else {
+            this.anchor = ANCHORS.CENTER;
+            this.pos = { x: 0, y: 0, z: 0 }
+            this.size = { x: 10, y: 10, z: 0 }
+            this.vel = { x: 0, y: 0, z: 0 }
+        }
+
+        this.previewEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
+        this.previewEntity.setVel({ ...this.vel })
+        this.previewEntity.setAnchor({ ...this.anchor });
 
         this.lockAxis = true;
 
@@ -53,9 +69,6 @@ export class DevTools {
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e, offset));
         window.addEventListener('keyup', (e) => this.commands(e));
-        // window.addEventListener('mousemove', (e) => this.onMouseMove(e, offset));
-        // window.addEventListener('drag', (e) => this.onDrag(e, true));
-        // window.addEventListener('dragend', (e) => this.onDrag(e, false));
     }
 
     // Commands
@@ -68,9 +81,24 @@ export class DevTools {
                 case 's': this.cmdState = CmdState.S; break;
                 case 'r': this.updatePreview(); break;
                 case 'c':
-                    if (this.cmdState === CmdState.NONE) {
-                        this.clearProperties();
-                        this.updatePreview();
+                    if (!e.shiftKey) {
+                        if (this.cmdState === CmdState.NONE) {
+                            this.clearProperties();
+                            this.updatePreview();
+                        }
+                    }
+                    else {
+                        // print to console
+                        const buffer = JSON.stringify({
+                            type: 'Base',
+                            anchor: this.anchor,
+                            pos: this.pos,
+                            size: this.size,
+                            vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
+                            color: 'white'
+                        });
+                        localStorage.setItem('lastObject', buffer);
+                        console.log(buffer)
                     }
                     break;
                 case 'enter':
@@ -99,27 +127,27 @@ export class DevTools {
                 case CmdState.A:
                     switch (key) {
                         case 'l':
-                            this.anchorType = Anchors.LEFT;
+                            this.anchor = ANCHORS.LEFT;
                             this.updatePreview();
                             this.cmdState = CmdState.NONE;
                             break;
                         case 'r':
-                            this.anchorType = Anchors.RIGHT;
+                            this.anchor = ANCHORS.RIGHT;
                             this.updatePreview();
                             this.cmdState = CmdState.NONE;
                             break;
                         case 't':
-                            this.anchorType = Anchors.TOP;
+                            this.anchor = ANCHORS.TOP;
                             this.updatePreview();
                             this.cmdState = CmdState.NONE;
                             break;
                         case 'b':
-                            this.anchorType = Anchors.BOTTOM;
+                            this.anchor = ANCHORS.BOTTOM;
                             this.updatePreview();
                             this.cmdState = CmdState.NONE;
                             break;
                         case 'c':
-                            this.anchorType = Anchors.CENTER;
+                            this.anchor = ANCHORS.CENTERa;
                             this.updatePreview();
                             this.cmdState = CmdState.NONE;
                             break;
@@ -262,10 +290,10 @@ export class DevTools {
         ctx!.fillText(`Commands:`, 650, yPos += 30);
         switch (this.cmdState) {
             case CmdState.NONE:
-                ctx!.fillText(`A: set Anchor: ${this.anchorType}`, 700, yPos += 30);
-                ctx!.fillText(`P: set Position${this.pos ? `: [${this.pos.x}, ${this.pos.y}]` : ''}`, 700, yPos += 30);
+                ctx!.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, yPos += 30);
+                ctx!.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, yPos += 30);
                 ctx!.fillText(`V: set Velocity${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, yPos += 30);
-                ctx!.fillText(`S: set Size${this.size ? `: [${this.size.x}, ${this.size.y}]` : ''}`, 700, yPos += 30);
+                ctx!.fillText(`S: set Size: [${this.size.x}, ${this.size.y}]`, 700, yPos += 30);
                 ctx!.fillText(`R: reload preview`, 700, yPos += 30);
                 ctx!.fillText(`C: cancel settings`, 700, yPos += 30);
                 break;
@@ -281,7 +309,7 @@ export class DevTools {
                         this.vectorMsgTemplate(ctx, 'P', false, this.pos, yPos += 30);
                         break;
                     default:
-                        ctx!.fillText(`P: enter x(X), enter y(Y)${this.pos ? `: [${this.pos.x}, ${this.pos.y}]` : ''}`, 700, yPos += 30);
+                        ctx!.fillText(`P: enter x(X), enter y(Y): [${this.pos.x}, ${this.pos.y}]`, 700, yPos += 30);
                         break;
                 }
                 break;
@@ -294,7 +322,7 @@ export class DevTools {
                         this.vectorMsgTemplate(ctx, 'S', false, this.size, yPos += 30);
                         break;
                     default:
-                        ctx!.fillText(`S: enter x(X), enter y(Y)${this.size ? `: [${this.size.x}, ${this.size.y}]` : ''}`, 700, yPos += 30);
+                        ctx!.fillText(`S: enter x(X), enter y(Y): [${this.size.x}, ${this.size.y}]`, 700, yPos += 30);
                         break;
                 }
                 break;
@@ -328,24 +356,22 @@ export class DevTools {
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
-        this.anchorType = Anchors.CENTER;
-        this.pos = null
-        this.end = null
-        this.vel = null
-        this.size = null
+        this.anchor = ANCHORS.CENTER;
+        this.pos = { x: 0, y: 0, z: 0 };
+        this.vel = { x: 0, y: 0, z: 0 }
+        this.size = { x: 10, y: 10, z: 0 }
     }
 
     preview(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
-        this.previewEntity.tick([], delta);
-        this.previewEntity.draw(ctx, offset);
+        this.previewEntity!.tick([], delta);
+        this.previewEntity!.draw(ctx, offset);
     }
 
     updatePreview() {
-        const anc = Anchors[this.anchorType];
-        this.previewEntity.setAnchor(ANCHORS[anc]);
-        this.previewEntity.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
-        this.previewEntity.setPos(this.pos ? { ...this.pos } : { x: 0, y: 0, z: 0 });
-        this.previewEntity.setSize(this.size ? { ...this.size } : { x: 10, y: 10, z: 0 });
+        this.previewEntity!.setAnchor(this.anchor);
+        this.previewEntity!.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
+        this.previewEntity!.setPos({ ...this.pos });
+        this.previewEntity!.setSize(this.size);
     }
 
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
@@ -366,6 +392,22 @@ export class DevTools {
                     case SubCmd.Y:
                         if (e.button === 0) {
                             this.inputBuffer = this.getMousePos(e, offset).y.toString();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case CmdState.S:
+                switch (this.subCmd) {
+                    case SubCmd.X:
+                        if (e.button === 0) {
+                            this.inputBuffer = Math.abs((this.pos.x - this.getMousePos(e, offset).x)).toString();
+                        }
+                        break;
+                    case SubCmd.Y:
+                        if (e.button === 0) {
+                            this.inputBuffer = Math.abs((this.getMousePos(e, offset).y - this.pos.y)).toString();
                         }
                         break;
                     default:

@@ -4,7 +4,7 @@
         "name": "column-pair-with-lower-gap",
         "time": 0,
         "entities": [ 
-           
+            {"type":"Base","anchor":{"x":0.5,"y":0,"z":0.5},"pos":{"x":-368,"y":-249,"z":0},"size":{"x":20,"y":209,"z":0},"vel":{"x":200,"y":0,"z":0},"color":"white"}
         ]
     }]
 }

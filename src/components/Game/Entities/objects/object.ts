@@ -1,7 +1,14 @@
 import { Vector } from "../../Lib";
 import { Entity } from "../Entity";
 
+export enum ObjectType {
+    Base,
+    Platform,
+    HurtBox
+}
+
 export interface Entity_Object {
+    type: ObjectType
     anchor: Vector;
     pos: Vector;
     size: Vector;

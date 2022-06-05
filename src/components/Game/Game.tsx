@@ -42,18 +42,18 @@ export default class Game {
         seq.entities.forEach((e: any) => {
             // console.warn('new sequence', e)
             let pl = null;
-            switch (e[0]) {
+            switch (e.type) {
                 case "motion":
-                    pl = new HurtBox_Motion(e[2], e[3], 'blue');
-                    pl.setAnchor(e[1]);
+                    pl = new HurtBox_Motion(e.pos, e.size, e.color);
+                    pl.setAnchor(e.anchor);
                     break;
                 default:
-                    pl = new HurtBox(e[2], e[3], 'white');
-                    pl.setAnchor(e[1]);
+                    pl = new HurtBox(e.pos, e.size, e.color);
+                    pl.setAnchor(e.anchor);
                     break;
             }
             if (pl !== null) {
-                pl!.setVel(e[4]);
+                pl!.setVel(e.vel);
                 this.platforms.push(pl);
             }
         });
