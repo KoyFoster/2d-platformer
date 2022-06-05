@@ -4,9 +4,11 @@ import cages from './Maps/cages.json';
 import seq0 from './Maps/sequences/seq_1.json';
 import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
+import { DevTools } from "../devtools";
 const randomcolor = require('randomcolor');
 
 export default class Game {
+
     private canvas = document.querySelector('canvas') as HTMLCanvasElement;
     private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
     private platforms = [] as Entity[];
@@ -23,6 +25,8 @@ export default class Game {
         jump: false,
     }
     private prevKeys = { jump: false }
+
+    private dev = new DevTools(this.camera);
 
     public constructor() {
         // Input Listeners
@@ -148,6 +152,8 @@ export default class Game {
 
         // Deallocation boundaries: unload Entities if they leave the zone
         this.deallocate();
+
+        this.dev.tick(this.ctx);
 
         // UI
         // draw relative to camera
