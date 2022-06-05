@@ -1,7 +1,7 @@
 import { Vector, __speed__ } from "./Lib";
 import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
 import cages from './Maps/cages.json';
-import seq0 from './Maps/sequences/seq_1.json';
+import seq0 from './Maps/sequences/seq_2.json';
 import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 import { DevTools } from "../devtools";
