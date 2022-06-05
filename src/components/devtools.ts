@@ -18,6 +18,7 @@ const ANCHORS = {
 } as IDictionary;
 
 export class DevTools {
+    hide = false as boolean;
     // Entity creation properties
     inputBuffer: string;
     validInput: boolean;
@@ -38,7 +39,8 @@ export class DevTools {
         let lastObject = localStorage.getItem('lastObject') as Entity_Object | string | null;
         lastObject = lastObject ? JSON.parse(lastObject as string) as Entity_Object | null : null;
 
-        console.warn('lastObject:', lastObject)
+        const hide = localStorage.getItem('hideDev');
+        if (hide && hide === 'true') this.hide = true;
 
         // Entity creation properties
         this.inputBuffer = '';
@@ -73,6 +75,13 @@ export class DevTools {
 
     // Commands
     commands(e: KeyboardEvent) {
+        // on F1 Hide Dev Tool
+        if (e.key === 'F2') {
+            this.hide = !this.hide;
+            localStorage.setItem('hideDev', this.hide ? 'true' : 'false');
+            return;
+        }
+
         if (this.subCmd === SubCmd.NONE)
             switch (e.key.toLowerCase()) {
                 case 'a': this.cmdState = CmdState.A; break;
@@ -375,6 +384,7 @@ export class DevTools {
     }
 
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
+        if (this.hide) return;
         this.preview(ctx, offset, delta);
 
         this.showCommands(ctx, offset)
