@@ -1,7 +1,7 @@
 import { Vector, __speed__ } from "./Lib";
 import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
 import cages from './Maps/cages.json';
-import seq0 from './Maps/sequences/seq_1.json';
+import seq0 from './Maps/sequences/seq_dev.json';
 import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 import { DevTools } from "../devtools";
@@ -153,7 +153,7 @@ export default class Game {
         // Deallocation boundaries: unload Entities if they leave the zone
         this.deallocate();
 
-        this.dev.tick(this.ctx);
+        this.dev.tick(this.ctx, this.camera, delta);
 
         // UI
         // draw relative to camera
