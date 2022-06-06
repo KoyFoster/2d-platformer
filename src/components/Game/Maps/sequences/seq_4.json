@@ -5,19 +5,20 @@
         {
             "name": "bone-pit",
             "entities": [
-                {"type":"Base","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-420,"y":25,"z":0},"size":{"x":1500,"y":50,"z":0},"vel":{"x":200,"y":0,"z":0},"color":"white"},
-                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-450,"y":10,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":200,"y":0,"z":0},"color":"grey"},
-                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-450,"y":0,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":200,"y":0,"z":0},"color":"black"},
+                {"type":"Base","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-420,"y":25,"z":0},"size":{"x":1350,"y":50,"z":0},"vel":{"x":220,"y":0,"z":0},"color":"white"},
+                
+                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-450,"y":10,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":220,"y":0,"z":0},"color":"grey"},
+                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-450,"y":0,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":220,"y":0,"z":0},"color":"black"},
 
-                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-850,"y":10,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":250,"y":0,"z":0},"color":"grey"},
-                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-850,"y":0,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":250,"y":0,"z":0},"color":"black"},
+                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1050,"y":10,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":260,"y":0,"z":0},"color":"grey"},
+                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1050,"y":0,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":260,"y":0,"z":0},"color":"black"},
 
-                {"type":"Base","anchor":{"x":1,"y":0,"z":0.5},"pos":{"x":-1250,"y":-180,"z":0},"size":{"x":70,"y":80,"z":0},"vel":{"x":200,"y":0,"z":0},"color":"white"},                
-                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1250,"y":10,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":250,"y":0,"z":0},"color":"grey"},
-                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1250,"y":0,"z":0},"size":{"x":80,"y":10,"z":0},"vel":{"x":250,"y":0,"z":0},"color":"black"},
+                {"type":"Base","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1800,"y":-180,"z":0},"size":{"x":80,"y":100,"z":0},"vel":{"x":320,"y":0,"z":0},"color":"white"},                
+                {"type":"Platform","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1650,"y":10,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":300,"y":0,"z":0},"color":"grey"},
+                {"type":"tractor","anchor":{"x":0,"y":0,"z":0.5},"pos":{"x":-1650,"y":0,"z":0},"size":{"x":120,"y":10,"z":0},"vel":{"x":300,"y":0,"z":0},"color":"black"},
 
-                {"type":"Base","anchor":{"x":1,"y":0,"z":0.5},"pos":{"x":-1550,"y":-180,"z":0},"size":{"x":20,"y":260,"z":0},"vel":{"x":250,"y":0,"z":0},"color":"white"}
+                {"type":"Base","anchor":{"x":1,"y":0,"z":0.5},"pos":{"x":-2700,"y":-180,"z":0},"size":{"x":20,"y":200,"z":0},"vel":{"x":320,"y":0,"z":0},"color":"white"}
             ]
         }
     ]
-}
+}     
