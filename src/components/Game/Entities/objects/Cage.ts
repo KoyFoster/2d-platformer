@@ -12,14 +12,14 @@ export class Cage extends Entity {
 
     public setVel(vel: Vector) { this.vel = vel }
 
-    public draw(ctx: CanvasRenderingContext2D, cam: Vector): void {
+    public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         ctx!.strokeStyle = this.color;
         ctx!.lineWidth = this.lineThickness;
-        ctx!.rect(
-            this.pos.x - (this.size.x * 0.5) - cam.x,
-            this.pos.y - (this.size.y * 0.5) - cam.y,
-            this.size.x,
-            this.size.y);
+        ctx.rect(
+            this.pos.x - this.bounds.leftRad - cam.x, // x
+            this.pos.y - this.bounds.topRad - cam.y, // y
+            this.size.x, // w
+            this.size.y); //h
         ctx!.stroke();
     }
 

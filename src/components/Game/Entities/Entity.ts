@@ -46,9 +46,7 @@ export abstract class Entity {
 
     public tick(entity: Entity[] | null, delta: number | undefined) { }
 
-    public affect(entity: Entity, delta: number) {
-        return false;
-    }
+    public affect(entity: Entity, delta: number) { return false; }
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         ctx.fillStyle = this.color;
@@ -60,9 +58,6 @@ export abstract class Entity {
     }
 
     public checkCollision(other: Entity) {
-        // const radX = ((player.getSize.x * player.anchor.x));
-        // const radY = ((player.getSize.y * (1 - player.anchor.y)));
-
         return (
             this.bounds.left < other.bounds.right &&
             this.bounds.right > other.bounds.left &&

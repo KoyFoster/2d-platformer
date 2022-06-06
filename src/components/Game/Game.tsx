@@ -28,6 +28,8 @@ export default class Game {
     private dev = new DevTools(this.camera);
 
     public constructor() {
+        this.cage.setAnchor({ x: 0.5, y: 0, z: 0 })
+
         // Input Listeners
         window.addEventListener('keydown', (e) => this.onKey(e, true));
         window.addEventListener('keyup', (e) => this.onKey(e, false));
@@ -68,14 +70,17 @@ export default class Game {
     public loadSequences(sequences: any) {
         // load cage
         this.cage = new Cage(cages[sequences.cage][0], cages[sequences.cage][1], 'white');
+        this.cage.setAnchor({ x: 0.5, y: 0, z: 0 })
+
+        // Set deallocation timer      
+        const { lifetime } = sequences;
+        const interval = setInterval(() => {
+            this.platforms = [];
+            clearInterval(interval);
+        }, lifetime);
 
         sequences.sequence.forEach((seq: Sequence) => {
-            // delay
-            const time = seq.time;
-            const interval = setInterval(() => {
-                this.loadSeq(seq);
-                clearInterval(interval);
-            }, time);
+            this.loadSeq(seq);
         });
     }
 
@@ -88,21 +93,6 @@ export default class Game {
         const pl = new HurtBox({ x: -500, y: 0, z: 0 }, { x: 20, y: 100, z: 0 }, 'green');
         pl.setVel({ x: __speed__, y: 0, z: 0 });
         this.platforms.push(pl);
-    }
-
-    // Deallocation boundaries: unload Entities if they leave the zone
-    deallocate() {
-        const deathBounds = 640;
-        const remainder = [] as Entity[];
-        this.platforms.forEach(pl => {
-            if (!(pl.getPosition.x > deathBounds || pl.getPosition.x < -deathBounds ||
-                pl.getPosition.y > deathBounds || pl.getPosition.y < -deathBounds))
-                remainder.push(pl)
-        })
-
-        if (this.platforms.length !== remainder.length)
-            console.log('pls:', this.platforms.length, 'remainder:', remainder.length);
-        this.platforms = remainder;
     }
 
     debug() {
@@ -149,10 +139,6 @@ export default class Game {
 
         // remember previous key presses
         this.prevKeys.jump = this.keys.jump;
-
-
-        // Deallocation boundaries: unload Entities if they leave the zone
-        this.deallocate();
 
         this.dev.tick(this.ctx, this.camera, delta);
 
