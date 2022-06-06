@@ -8,7 +8,7 @@ import { DevTools } from "../devtools";
 const randomcolor = require('randomcolor');
 
 export default class Game {
-    private canvas = document.querySelector('canvas') as HTMLCanvasElement;
+    private canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
     private backEntities = [] as Entity[];
     private foreEntities = [] as Entity[];

@@ -1,6 +1,5 @@
 import { FrameRate } from './framerate';
 import Game from './Game/Game';
-import map from './Game/Maps/cage_0.json';
 
 let game = null as Game | null;
 let framelock = null as FrameRate | null;

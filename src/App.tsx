@@ -1,27 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './App.css';
 import { Canvas, gameInit, renderLoop } from './components';
 
 function App() {
-  // On Mount
+  // After render
   useEffect(() => {
-    // console.log('useEffect');
-    // // Make sure this runs once
+    console.log('useEffect');
+    // Make sure this runs once
     // gameInit();
     // renderLoop();
-
     // To Prevent multiple calls in dev mode
     // does not work in prod
     return () => {
       gameInit();
       renderLoop();
     }
-  }, []);
+  });
 
   return (
     <div className="App">
       <header className="App-header">
-        <Canvas id='canvas' width={1280} height={720}></Canvas>
+        <Canvas id='game-canvas' width={1280} height={720}></Canvas>
       </header>
     </div>
   );
