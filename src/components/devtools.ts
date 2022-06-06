@@ -1,9 +1,9 @@
 import { Entity, HurtBox } from "./Game/Entities";
-import { BaseObject, Entity_Object } from "./Game/Entities/objects/object";
+import { BaseObject, Entity_Object, ObjectType } from "./Game/Entities/objects/object";
 import { Vector } from "./Game/Lib";
 
-enum CmdState { A, P, S, V, C, NONE };
-enum SubCmd { X, Y, NONE };
+enum CmdState { E, A, P, S, V, C, NONE };
+enum SubCmd { X, Y, Add, Sub, Prev, Next, NONE };
 
 export class DevTools {
     hide = false as boolean;
@@ -18,14 +18,17 @@ export class DevTools {
     vel: Vector;
     size: Vector;
 
-    previewEntity = null as BaseObject | null;
+    focusedEntity = null as BaseObject | null;
+    previewEntities = [] as BaseObject[];
+    entityData = [] as Entity_Object[];
+    entityIndex = -1 as number;
 
     // states
     lockAxis: boolean; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
-        let lastObject = localStorage.getItem('lastObject') as Entity_Object | string | null;
-        lastObject = lastObject ? JSON.parse(lastObject as string) as Entity_Object | null : null;
+        let lastObject = localStorage.getItem('lastObject') as Entity_Object[] | string | null;
+        lastObject = lastObject ? JSON.parse(lastObject as string) as Entity_Object[] : [] as Entity_Object[];
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
@@ -36,22 +39,42 @@ export class DevTools {
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
 
-        if (lastObject) {
-            this.anchor = lastObject.anchor;
-            this.pos = lastObject.pos;
-            this.size = lastObject.size;
-            this.vel = lastObject.vel;
+        if (lastObject.length > 0) {
+            // copy over settings of first element
+            const first = lastObject[0]
+            this.anchor = first.anchor;
+            this.pos = first.pos;
+            this.size = first.size;
+            this.vel = first.vel;
+
+            // load in all objects
+            lastObject.forEach(ent => {
+                this.addEntity(ent, false);
+            });
         }
+        // create initial entity
         else {
             this.anchor = { x: 0.5, y: 0.5, z: 0.5 };
-            this.pos = { x: 0, y: 0, z: 0 }
-            this.size = { x: 10, y: 10, z: 0 }
-            this.vel = { x: 0, y: 0, z: 0 }
-        }
+            this.pos = { x: 0, y: 0, z: 0 };
+            this.size = { x: 10, y: 10, z: 0 };
+            this.vel = { x: 0, y: 0, z: 0 };
 
-        this.previewEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
-        this.previewEntity.setVel({ ...this.vel })
-        this.previewEntity.setAnchor({ ...this.anchor });
+
+            this.focusedEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
+            this.focusedEntity.setVel({ ...this.vel })
+            this.focusedEntity.setAnchor({ ...this.anchor });
+            this.entityData.push();
+
+
+            this.addEntity({
+                type: ObjectType.Base,
+                anchor: this.anchor,
+                pos: this.pos,
+                size: this.size,
+                vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
+                color: 'white'
+            }, false);
+        }
 
         this.lockAxis = true;
 
@@ -72,6 +95,7 @@ export class DevTools {
 
         if (this.subCmd === SubCmd.NONE)
             switch (e.key.toLowerCase()) {
+                case 'e': this.cmdState = CmdState.E; break;
                 case 'a': this.cmdState = CmdState.A; break;
                 case 'p': this.cmdState = CmdState.P; break;
                 case 'v': this.cmdState = CmdState.V; break;
@@ -86,14 +110,7 @@ export class DevTools {
                     }
                     else {
                         // print to console
-                        const buffer = JSON.stringify({
-                            type: 'Base',
-                            anchor: this.anchor,
-                            pos: this.pos,
-                            size: this.size,
-                            vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
-                            color: 'white'
-                        });
+                        const buffer = JSON.stringify(this.entityData);
                         console.log(buffer);
                     }
                     break;
@@ -119,6 +136,26 @@ export class DevTools {
         if (this.subCmd === SubCmd.NONE)
             switch (this.cmdState) {
                 case CmdState.NONE:
+                    break;
+                case CmdState.E:
+                    switch (key) {
+                        case '=':
+                            this.addEntity(this.entityData[this.entityIndex], true);
+                            break;
+                        case '-':
+                            this.subEntity();
+                            break;
+                        case 'arrowright':
+                            this.nextEntity();
+                            break;
+                        case 'arrowleft':
+                            this.prevEntity();
+                            break;
+                        case 'escape':
+                            this.cmdState = CmdState.NONE;
+                            break;
+                        default: break;
+                    }
                     break;
                 case CmdState.A:
                     switch (key) {
@@ -181,13 +218,16 @@ export class DevTools {
             }
         else {
             this.captureInput(key);
+
             // check input
             let buffer = 0 as number | null;
+            console.log(key)
             switch (key) {
                 case 'escape':
                     this.subCmd = SubCmd.NONE;
                     break;
 
+                // Apply changes to entity property
                 case 'enter':
                     let change = false;
                     let context = null as Vector | null;
@@ -273,12 +313,20 @@ export class DevTools {
         ctx!.fillText(`Commands:`, 650, yPos += 30);
         switch (this.cmdState) {
             case CmdState.NONE:
+                ctx!.fillText(`E: Entity Options: ${this.previewEntities.length} present`, 700, yPos += 30);
                 ctx!.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, yPos += 30);
                 ctx!.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, yPos += 30);
                 ctx!.fillText(`V: set Velocity${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, yPos += 30);
                 ctx!.fillText(`S: set Size: [${this.size.x}, ${this.size.y}]`, 700, yPos += 30);
                 ctx!.fillText(`R: reload preview`, 700, yPos += 30);
                 ctx!.fillText(`C: cancel settings`, 700, yPos += 30);
+                break;
+            case CmdState.E:
+                switch (this.subCmd) {
+                    default:
+                        ctx!.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, yPos += 30);
+                        break;
+                }
                 break;
             case CmdState.A:
                 switch (this.subCmd) {
@@ -356,24 +404,79 @@ export class DevTools {
     }
 
     preview(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
-        this.previewEntity!.tick([], delta);
-        this.previewEntity!.draw(ctx, offset);
+        this.previewEntities.forEach((ent) => {
+            let prevFilter = ctx!.filter;
+            if (ent === this.focusedEntity) { ctx!.filter = 'invert(75%)' }
+
+            ent!.tick([], delta);
+            ent!.draw(ctx, offset);
+            ctx!.filter = prevFilter;
+        })
+    }
+
+    // automatically takes the current objects settings and translates them to the right
+    addEntity(data: Entity_Object, bump: boolean) {
+        console.log('addEntity');
+        this.focusedEntity = new BaseObject({ ...data.pos }, { ...data.size }, 'green');
+        this.focusedEntity.setVel({ ...data.vel })
+        this.focusedEntity.setAnchor({ ...data.anchor });
+        this.entityData.push({
+            type: ObjectType.Base,
+            anchor: data.anchor,
+            pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : data.pos,
+            size: data.size,
+            vel: data.vel ? data.vel : { x: 0, y: 0, z: 0 },
+            color: 'white'
+        })
+        this.previewEntities.push(this.focusedEntity);
+        this.entityIndex = this.previewEntities.length - 1;
+    }
+
+    subEntity() {
+        if (this.previewEntities.length <= 2) return;
+        console.log('subEntity');
+        // remove entity as index
+        this.previewEntities = this.previewEntities.filter((ent, index) => index !== this.entityIndex);
+        this.entityData = this.entityData.filter((data, index) => index !== this.entityIndex);
+
+        if (this.entityIndex > 0) this.entityIndex--;
+        this.focusedEntity = this.previewEntities[this.entityIndex];
+    }
+
+    nextEntity() {
+        if (this.entityData.length - 1 <= this.entityIndex) return;
+        console.log('nextEntity');
+        this.focusedEntity = this.previewEntities[++this.entityIndex];
+        const data = this.entityData[this.entityIndex];
+
+        // update local data
+        this.anchor = data.anchor;
+        this.pos = data.pos;
+        this.size = data.size;
+        this.vel = data.vel;
+    }
+    prevEntity() {
+        if (2 > this.entityIndex) return;
+        console.log('prevEntity');
+        this.focusedEntity = this.previewEntities[--this.entityIndex];
+        const data = this.entityData[this.entityIndex];
+
+        // update local data
+        this.anchor = data.anchor;
+        this.pos = data.pos;
+        this.size = data.size;
+        this.vel = data.vel;
     }
 
     updatePreview() {
-        localStorage.setItem('lastObject', JSON.stringify({
-            type: 'Base',
-            anchor: this.anchor,
-            pos: this.pos,
-            size: this.size,
-            vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
-            color: 'white'
-        }));
+        localStorage.setItem('lastObject', JSON.stringify(this.entityData));
 
-        this.previewEntity!.setAnchor(this.anchor);
-        this.previewEntity!.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
-        this.previewEntity!.setPos({ ...this.pos });
-        this.previewEntity!.setSize(this.size);
+        this.previewEntities.forEach(ent => {
+            ent.setAnchor(this.anchor);
+            ent.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
+            ent.setPos({ ...this.pos });
+            ent.setSize(this.size);
+        })
     }
 
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
