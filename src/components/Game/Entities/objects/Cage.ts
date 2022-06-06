@@ -4,7 +4,7 @@ import { Player } from "../Player";
 
 export class Cage extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
-    private lineThickness: number = 12; // setting to one, as it is the default line width. 12 would be prefered
+    private lineThickness: number = 12;
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
@@ -14,15 +14,12 @@ export class Cage extends Entity {
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         ctx!.strokeStyle = this.color;
-        // WARNING: Using this causes FPS decline
-        // disbled it here and hardcodding it at the very start of the games runtime
-        // ctx!.lineWidth = this.lineThickness;
-        ctx.rect(
+        ctx!.lineWidth = this.lineThickness;
+        ctx.strokeRect(
             this.pos.x - this.bounds.leftRad - cam.x, // x
             this.pos.y - this.bounds.topRad - cam.y, // y
             this.size.x, // w
             this.size.y); //h
-        ctx!.stroke();
     }
 
     public affect(player: Player) {
