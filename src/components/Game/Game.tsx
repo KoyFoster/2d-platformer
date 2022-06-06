@@ -1,14 +1,13 @@
 import { Vector, __speed__ } from "./Lib";
-import { Entity, Player, Platform, HurtBox, Cage } from "./Entities"
+import { Entity, Player, Platform, HurtBox, Cage, Tractor } from "./Entities"
 import cages from './Maps/cages.json';
-import seq0 from './Maps/sequences/seq_3.json';
+import seq0 from './Maps/sequences/seq_4.json';
 import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 import { DevTools } from "../devtools";
 const randomcolor = require('randomcolor');
 
 export default class Game {
-
     private canvas = document.querySelector('canvas') as HTMLCanvasElement;
     private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
     private platforms = [] as Entity[];
@@ -34,7 +33,6 @@ export default class Game {
         window.addEventListener('keyup', (e) => this.onKey(e, false));
 
         // load sequences
-        // this.loadSequences(seq0);
         this.loadSequences(seq0);
     }
 
@@ -43,6 +41,14 @@ export default class Game {
             // console.warn('new sequence', e)
             let pl = null;
             switch (e.type) {
+                case "Platform":
+                    pl = new Platform(e.pos, e.size, e.color);
+                    pl.setAnchor(e.anchor);
+                    break;
+                case "tractor":
+                    pl = new Tractor(e.pos, e.size, e.color);
+                    pl.setAnchor(e.anchor);
+                    break;
                 case "motion":
                     pl = new HurtBox_Motion(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
@@ -140,11 +146,6 @@ export default class Game {
         this.player.draw(this.ctx, this.camera);
         this.player.UI(this.ctx);
         this.player.debug(this.ctx);
-
-        // update camera on player position
-        // The follow multiplier slows down the camera, causing a drag effect
-        // this.camera.x = Math.round(this.camera.x - (this.camera.x + this.canvas.width / 2 - this.player.getPosition.x) * __follow__.x * delta);
-        // this.camera.y = Math.round(this.camera.y - (this.camera.y + this.canvas.height / 2 - this.player.getPosition.y) * __follow__.y * delta);
 
         // remember previous key presses
         this.prevKeys.jump = this.keys.jump;

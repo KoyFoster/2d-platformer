@@ -23,17 +23,7 @@ export class Cage extends Entity {
         ctx!.stroke();
     }
 
-    public checkInside(other: Entity) {
-        return (
-            this.bounds.left > other.bounds.right &&
-            this.bounds.right < other.bounds.left &&
-            this.bounds.top > other.bounds.bottom &&
-            this.bounds.bottom < other.bounds.top
-        )
-    }
-
     public affect(player: Player) {
-        if (this.checkInside(player)) return false;
 
         // X Collision
         let radius = ((this.thickness * 0.5 + player.getSize.x * player.anchor.x));

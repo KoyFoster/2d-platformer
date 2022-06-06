@@ -30,6 +30,10 @@ export class Player extends Entity {
         }
     }
 
+    public setVel(vel: Vector) { this.vel = vel }
+    public setPos(pos: Vector) { this.pos = pos }
+    public setSize(size: Vector) { this.size = size }
+
     public constructor(pos: Vector) {
         super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
         this.anchor = { x: 0.5, y: 0, z: 0.5 };
@@ -60,7 +64,8 @@ export class Player extends Entity {
         platforms.forEach(platform => {
             // alert(`player bounds: ${this.bounds.left}, ${this.bounds.right}, ${this.bounds.top}, ${this.bounds.bottom}`)
             if (this.checkCollision(platform)) {
-                // x axis collisio
+                console.log('colliding');
+                // x axis collision
                 if (platform.isSolid) {
                     this.pos.x -= this.vel.x > 0 ? this.bounds.right - platform.bounds.left : this.bounds.left - platform.bounds.right;
                     this.vel.x = 0;
@@ -73,6 +78,7 @@ export class Player extends Entity {
         this.grounded = false;
         platforms.forEach(platform => {
             if (this.checkCollision(platform)) {
+                console.log('colliding');
                 if (platform.isSolid) {
                     // y-axis collision
                     this.pos.y -= this.vel.y > 0 ? this.bounds.bottom - platform.bounds.top : this.bounds.top - platform.bounds.bottom;

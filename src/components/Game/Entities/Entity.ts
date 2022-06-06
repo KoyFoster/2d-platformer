@@ -60,6 +60,9 @@ export abstract class Entity {
     }
 
     public checkCollision(other: Entity) {
+        // const radX = ((player.getSize.x * player.anchor.x));
+        // const radY = ((player.getSize.y * (1 - player.anchor.y)));
+
         return (
             this.bounds.left < other.bounds.right &&
             this.bounds.right > other.bounds.left &&

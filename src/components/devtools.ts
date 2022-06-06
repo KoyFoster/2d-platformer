@@ -5,18 +5,6 @@ import { Vector } from "./Game/Lib";
 enum CmdState { A, P, S, V, C, NONE };
 enum SubCmd { X, Y, NONE };
 
-enum Anchors { LEFT = 1, RIGHT = 2, TOP = 3, BOTTOM = 4, CENTER = 0 }
-interface IDictionary {
-    [index: string]: Vector;
-}
-const ANCHORS = {
-    "LEFT": { x: 0, y: 0.5, z: 0.5 },
-    "RIGHT": { x: 1, y: 0.5, z: 0.5 },
-    "TOP": { x: 0.5, y: 0, z: 0.5 },
-    "BOTTOM": { x: 0.5, y: 1, z: 0.5 },
-    "CENTER": { x: 0.5, y: 0.5, z: 0.5 }
-} as IDictionary;
-
 export class DevTools {
     hide = false as boolean;
     // Entity creation properties
@@ -55,7 +43,7 @@ export class DevTools {
             this.vel = lastObject.vel;
         }
         else {
-            this.anchor = ANCHORS.CENTER;
+            this.anchor = { x: 0.5, y: 0.5, z: 0.5 };
             this.pos = { x: 0, y: 0, z: 0 }
             this.size = { x: 10, y: 10, z: 0 }
             this.vel = { x: 0, y: 0, z: 0 }
@@ -106,8 +94,7 @@ export class DevTools {
                             vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
                             color: 'white'
                         });
-                        localStorage.setItem('lastObject', buffer);
-                        console.log(buffer)
+                        console.log(buffer);
                     }
                     break;
                 case 'enter':
@@ -135,32 +122,12 @@ export class DevTools {
                     break;
                 case CmdState.A:
                     switch (key) {
-                        case 'l':
-                            this.anchor = ANCHORS.LEFT;
-                            this.updatePreview();
-                            this.cmdState = CmdState.NONE;
+                        case 'x':
+                            this.subCmd = SubCmd.X;
                             break;
-                        case 'r':
-                            this.anchor = ANCHORS.RIGHT;
-                            this.updatePreview();
-                            this.cmdState = CmdState.NONE;
+                        case 'y':
+                            this.subCmd = SubCmd.Y;
                             break;
-                        case 't':
-                            this.anchor = ANCHORS.TOP;
-                            this.updatePreview();
-                            this.cmdState = CmdState.NONE;
-                            break;
-                        case 'b':
-                            this.anchor = ANCHORS.BOTTOM;
-                            this.updatePreview();
-                            this.cmdState = CmdState.NONE;
-                            break;
-                        case 'c':
-                            this.anchor = ANCHORS.CENTERa;
-                            this.updatePreview();
-                            this.cmdState = CmdState.NONE;
-                            break;
-                        case 'enter':
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
@@ -225,6 +192,9 @@ export class DevTools {
                     let change = false;
                     let context = null as Vector | null;
                     switch (this.cmdState) {
+                        case CmdState.A:
+                            context = this.anchor;
+                            break;
                         case CmdState.P:
                             context = this.pos;
                             break;
@@ -257,6 +227,10 @@ export class DevTools {
                                 break;
                         }
                         switch (this.cmdState) {
+                            case CmdState.A:
+                                change = true;
+                                this.anchor = context;
+                                break;
                             case CmdState.P:
                                 change = true;
                                 this.pos = context;
@@ -307,7 +281,17 @@ export class DevTools {
                 ctx!.fillText(`C: cancel settings`, 700, yPos += 30);
                 break;
             case CmdState.A:
-                ctx!.fillText(`A: Left(L), Right(R), TOP(T), BOTTOM(B), Center(C)`, 700, yPos += 30);
+                switch (this.subCmd) {
+                    case SubCmd.X:
+                        this.vectorMsgTemplate(ctx, 'P', true, this.anchor, yPos += 30);
+                        break;
+                    case SubCmd.Y:
+                        this.vectorMsgTemplate(ctx, 'P', false, this.anchor, yPos += 30);
+                        break;
+                    default:
+                        ctx!.fillText(`A: enter x(X), enter y(Y): [${this.anchor.x}, ${this.anchor.y}]`, 700, yPos += 30);
+                        break;
+                }
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
@@ -365,7 +349,7 @@ export class DevTools {
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
-        this.anchor = ANCHORS.CENTER;
+        this.anchor = { x: 0.5, y: 0.5, z: 0.5 };
         this.pos = { x: 0, y: 0, z: 0 };
         this.vel = { x: 0, y: 0, z: 0 }
         this.size = { x: 10, y: 10, z: 0 }
@@ -377,6 +361,15 @@ export class DevTools {
     }
 
     updatePreview() {
+        localStorage.setItem('lastObject', JSON.stringify({
+            type: 'Base',
+            anchor: this.anchor,
+            pos: this.pos,
+            size: this.size,
+            vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
+            color: 'white'
+        }));
+
         this.previewEntity!.setAnchor(this.anchor);
         this.previewEntity!.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
         this.previewEntity!.setPos({ ...this.pos });
