@@ -11,7 +11,7 @@ export class HurtBox extends Entity {
     }
 
     public affect(player: Player, delta: number) {
-        player.hurt(1, 0, HurtType.standard);
+        player.hurt(1, 0, HurtType.constant);
         player.hurt(50 * delta, 1, HurtType.tick);
         return true;
     }

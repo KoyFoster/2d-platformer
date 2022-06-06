@@ -132,6 +132,7 @@ export class Player extends Entity {
             case HurtType.standard:
                 if (this.invincibility === 0) {
                     this.health -= amt;
+                    if (this.health < 0) this.health = 0;
                     // enable i-frames
                     this.invincibility = this.iframes;
                 }
@@ -139,9 +140,12 @@ export class Player extends Entity {
 
             case HurtType.constant:
                 this.health -= amt;
+                if (this.health < 0) this.health = 0;
                 break;
             case HurtType.tick:
                 this.tickDmg += amt;
+                // should not tick higher then the current available health
+                if (this.tickDmg > this.health) this.tickDmg = this.health;
                 // rate of dmg application
                 this.tickAmt = tickAmt;
                 break;
@@ -166,8 +170,9 @@ export class Player extends Entity {
     public UI(ctx: CanvasRenderingContext2D) {
         // Healthbar
         const x = 500, y = 640, w = 250, h = 50;
-        const lostHp = this.tickDmg / this.maxHealth;
-        const hp = (this.health / this.maxHealth) - lostHp;
+        let lostHp = this.tickDmg / this.maxHealth;
+        let hp = (this.health / this.maxHealth) - lostHp;
+        if (hp < 0) hp = 0;
 
         // Name
         // ctx!.font = '30px Mars Needs Cunnilingus';

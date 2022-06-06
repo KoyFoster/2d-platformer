@@ -13,7 +13,7 @@ export class HurtBox_Motion extends Entity {
     public affect(player: Player, delta: number) {
         if (player.getVelocity.x !== 0 || player.getVelocity.y !== 0) {
             console.log(player.getVelocity);
-            player.hurt(1, 0, HurtType.standard);
+            player.hurt(1, 0, HurtType.constant);
             player.hurt(50 * delta, 1, HurtType.tick);
         }
         return true;
