@@ -4,7 +4,7 @@ import { Player } from "../Player";
 
 export class Cage extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
-    private thickness: number = 12;
+    private lineThickness: number = 12;
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
@@ -14,7 +14,7 @@ export class Cage extends Entity {
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector): void {
         ctx!.strokeStyle = this.color;
-        ctx!.lineWidth = this.thickness;
+        ctx!.lineWidth = this.lineThickness;
         ctx!.rect(
             this.pos.x - (this.size.x * 0.5) - cam.x,
             this.pos.y - (this.size.y * 0.5) - cam.y,
@@ -26,7 +26,7 @@ export class Cage extends Entity {
     public affect(player: Player) {
 
         // X Collision
-        let radius = ((this.thickness * 0.5 + player.getSize.x * player.anchor.x));
+        let radius = ((this.lineThickness * 0.5 + player.bounds.leftRad));
         if (player.getPosition.x < this.bounds.left + radius) {
             player.getPosition.x = this.bounds.left + radius;
             player.getVelocity.x = 0;
@@ -38,7 +38,7 @@ export class Cage extends Entity {
 
         // Y Collision
         // Bottom Collision
-        radius = ((this.thickness * 0.5 + player.getSize.y * (1 - player.anchor.y)));
+        radius = ((this.lineThickness * 0.5 + player.bounds.bottomRad));
         if (player.getPosition.y > this.bounds.bottom - radius) {
             player.getPosition.y = this.bounds.bottom - radius;
             player.getVelocity.y = 0;

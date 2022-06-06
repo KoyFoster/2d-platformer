@@ -32,8 +32,8 @@ export abstract class Entity {
         const xRad = this.size.x * this.anchor.x;
         const yRad = this.size.y * this.anchor.y;
         return {
-            left: this.pos.x - xRad,
-            right: this.pos.x + (this.size.x - xRad),
+            left: this.pos.x - (this.size.x - xRad),
+            right: this.pos.x + xRad,
             top: this.pos.y - yRad,
             bottom: this.pos.y + (this.size.y - yRad),
 
