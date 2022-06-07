@@ -8,6 +8,7 @@ enum CmdState {
     S,
     V,
     C,
+    Cam,
     NONE,
 }
 enum SubCmd {
@@ -36,6 +37,8 @@ export class DevTools {
 
     anchor: Vector;
 
+    cam = { x: 0, y: 0, z: 0 } as Vector;
+
     pos: Vector;
 
     vel: Vector;
@@ -44,11 +47,11 @@ export class DevTools {
 
     focusedEntity = null as BaseObject | null;
 
-    previewEntities = [] as BaseObject[];
+    entities = [] as BaseObject[];
 
-    entityData = [] as EntityObject[];
+    data = [] as EntityObject[];
 
-    entityIndex = -1 as number;
+    index = -1 as number;
 
     // states
     lockAxis: boolean; // as in only translate on x or y axis
@@ -91,7 +94,7 @@ export class DevTools {
             this.focusedEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
             this.focusedEntity.setVel({ ...this.vel });
             this.focusedEntity.setAnchor({ ...this.anchor });
-            this.entityData.push();
+            this.data.push();
 
             this.addEntity(
                 {
@@ -153,7 +156,7 @@ export class DevTools {
                         if (this.cmdState === CmdState.NONE) {
                             this.saveToFile();
                         }
-                    }
+                    } else this.cmdState = CmdState.Cam;
                     break;
                 case 'enter':
                 case 'escape':
@@ -183,7 +186,7 @@ export class DevTools {
                 case CmdState.E:
                     switch (key) {
                         case '=':
-                            this.addEntity(this.entityData[this.entityIndex], true);
+                            this.addEntity(this.data[this.index], true);
                             break;
                         case '-':
                             this.subEntity();
@@ -255,6 +258,15 @@ export class DevTools {
                         case 'y':
                             this.subCmd = SubCmd.Y;
                             break;
+                        case 'escape':
+                            this.cmdState = CmdState.NONE;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case CmdState.Cam:
+                    switch (key) {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
@@ -373,13 +385,14 @@ export class DevTools {
         ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                ctx.fillText(`E: Entity Options: ${this.previewEntities.length} present`, 700, (yPos += 30));
+                ctx.fillText(`E: Entity Options: ${this.entities.length} present`, 700, (yPos += 30));
                 ctx.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, (yPos += 30));
                 ctx.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, (yPos += 30));
                 ctx.fillText(`V: set Velocity${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, (yPos += 30));
                 ctx.fillText(`S: set Size: [${this.size.x}, ${this.size.y}]`, 700, (yPos += 30));
                 ctx.fillText(`R: reload preview`, 700, (yPos += 30));
                 ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
+                ctx.fillText(`c: move camera`, 700, (yPos += 30));
                 break;
             case CmdState.E:
                 switch (this.subCmd) {
@@ -436,7 +449,14 @@ export class DevTools {
                         this.vectorMsgTemplate(ctx, 'V', false, this.vel, (yPos += 30));
                         break;
                     default:
-                        ctx.fillText(`V: enter x(X), enter y(Y)${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, (yPos += 30));
+                        ctx.fillText(`V: enter x(X), enter y(Y): [${this.vel.x}, ${this.vel.y}]`, 700, (yPos += 30));
+                        break;
+                }
+                break;
+            case CmdState.Cam:
+                switch (this.subCmd) {
+                    default:
+                        ctx.fillText(`c: LC to set, MC to reset: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -463,14 +483,14 @@ export class DevTools {
     }
 
     preview(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
-        this.previewEntities.forEach((ent) => {
+        this.entities.forEach((ent) => {
             const prevFilter = ctx.filter;
             if (ent === this.focusedEntity) {
                 ctx.filter = 'invert(75%)';
             }
 
             if (this.pause) ent.tick([], delta);
-            ent.draw(ctx, offset);
+            ent.draw(ctx, { x: offset.x + this.cam.x, y: offset.y + this.cam.y, z: 0 });
             ctx.filter = prevFilter;
         });
     }
@@ -481,7 +501,7 @@ export class DevTools {
         this.focusedEntity = new BaseObject({ ...data.pos }, { ...data.size }, 'green');
         this.focusedEntity.setVel({ ...data.vel });
         this.focusedEntity.setAnchor({ ...data.anchor });
-        this.entityData.push({
+        this.data.push({
             type: ObjectType.Base,
             anchor: data.anchor,
             pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : data.pos,
@@ -489,31 +509,31 @@ export class DevTools {
             vel: data.vel ? data.vel : { x: 0, y: 0, z: 0 },
             color: 'white',
         });
-        this.previewEntities.push(this.focusedEntity);
-        this.entityIndex = this.previewEntities.length - 1;
+        this.entities.push(this.focusedEntity);
+        this.index = this.entities.length - 1;
 
         this.save();
     }
 
     subEntity() {
-        if (this.previewEntities.length <= 2) return;
+        if (this.entities.length <= 2) return;
         console.log('subEntity');
         // remove entity as index
-        this.previewEntities = this.previewEntities.filter((ent, index) => index !== this.entityIndex);
-        this.entityData = this.entityData.filter((data, index) => index !== this.entityIndex);
+        this.entities = this.entities.filter((ent, index) => index !== this.index);
+        this.data = this.data.filter((data, index) => index !== this.index);
 
-        if (this.entityIndex > 0) this.entityIndex -= 1;
-        this.focusedEntity = this.previewEntities[this.entityIndex];
+        if (this.index > 0) this.index -= 1;
+        this.focusedEntity = this.entities[this.index];
 
         this.save();
     }
 
     nextEntity() {
-        if (this.entityData.length - 1 <= this.entityIndex) return;
+        if (this.data.length - 1 <= this.index) return;
         console.log('nextEntity');
-        this.entityIndex += 1;
-        this.focusedEntity = this.previewEntities[this.entityIndex];
-        const data = this.entityData[this.entityIndex];
+        this.index += 1;
+        this.focusedEntity = this.entities[this.index];
+        const data = this.data[this.index];
 
         // update local data
         this.anchor = data.anchor;
@@ -523,11 +543,11 @@ export class DevTools {
     }
 
     prevEntity() {
-        if (this.entityIndex < 2) return;
+        if (this.index < 1) return;
         console.log('prevEntity');
-        this.entityIndex -= 1;
-        this.focusedEntity = this.previewEntities[this.entityIndex];
-        const data = this.entityData[this.entityIndex];
+        this.index -= 1;
+        this.focusedEntity = this.entities[this.index];
+        const data = this.data[this.index];
 
         // update local data
         this.anchor = data.anchor;
@@ -537,7 +557,7 @@ export class DevTools {
     }
 
     save() {
-        localStorage.setItem('lastObject', JSON.stringify(this.entityData));
+        localStorage.setItem('lastObject', JSON.stringify(this.data));
     }
 
     saveToFile() {
@@ -545,19 +565,19 @@ export class DevTools {
             JSON.stringify({
                 cage: 2,
                 lifetime: 10000,
-                entities: this.entityData,
+                entities: this.data,
             })
         );
     }
 
     updatePreview() {
-        this.entityData[this.entityIndex].anchor = { ...this.anchor };
-        this.entityData[this.entityIndex].pos = { ...this.pos };
-        this.entityData[this.entityIndex].size = { ...this.size };
-        this.entityData[this.entityIndex].vel = { ...this.vel };
+        this.data[this.index].anchor = { ...this.anchor };
+        this.data[this.index].pos = { ...this.pos };
+        this.data[this.index].size = { ...this.size };
+        this.data[this.index].vel = { ...this.vel };
 
-        this.previewEntities.forEach((ent, index) => {
-            const d = this.entityData[index];
+        this.entities.forEach((ent, index) => {
+            const d = this.data[index];
             ent.setAnchor({ ...d.anchor });
             ent.setVel({ ...d.vel });
             ent.setPos({ ...d.pos });
@@ -570,6 +590,10 @@ export class DevTools {
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
         if (this.hide) return;
         this.preview(ctx, offset, delta);
+
+        // draw camera
+        ctx.fillStyle = 'gold';
+        ctx.fillRect(this.cam.x - offset.x, this.cam.y - offset.y, 10, 10);
 
         this.showCommands(ctx);
     }
@@ -606,6 +630,13 @@ export class DevTools {
                         break;
                     default:
                         break;
+                }
+                break;
+            case CmdState.Cam:
+                if (e.button === 0) {
+                    this.cam = { x: this.cam.x + e.offsetX + offset.x, y: this.cam.y + e.offsetY + offset.y, z: 0 };
+                } else if (e.button === 1) {
+                    this.cam = { x: 0, y: 0, z: 0 };
                 }
                 break;
             default:
