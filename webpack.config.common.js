@@ -14,22 +14,22 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ["@babel/preset-env", '@babel/preset-react', '@babel/preset-typescript']
-                    }
-                }
+                        presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
+                    },
+                },
             },
             {
                 test: /\.css$/,
                 exclude: /node_modules/,
                 use: {
                     loader: 'css-loader',
-                }
-            }
-        ]
+                },
+            },
+        ],
     },
 
     resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.json']
+        extensions: ['.ts', '.tsx', '.js', '.json'],
     },
 
     output: {
@@ -39,17 +39,14 @@ module.exports = {
     plugins: [
         new HTMLWebpackPlugin({
             template: './public/index.html',
-            favicon: "./public/favicon.ico",
-            manifest: "./public/manifest.json"
-        })
+            favicon: './public/favicon.ico',
+            manifest: './public/manifest.json',
+        }),
     ],
 
     devServer: {
-        static: [
-            { directory: path.resolve("dist") },
-            { directory: path.resolve("public") },
-        ],
+        static: [{ directory: path.resolve('dist') }, { directory: path.resolve('public') }],
         compress: true,
         port: 9000,
-    }
-}
+    },
+};

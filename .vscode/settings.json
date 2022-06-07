@@ -1,0 +1,12 @@
+{
+  "workbench.colorTheme": "Kimbie Dark",
+  "files.autoSaveDelay": 600000,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": true,
+  "eslint.run": "onType",
+  "files.watcherExclude": {},
+  "eslint.format.enable": true,
+  "html.format.contentUnformatted": ""
+}
