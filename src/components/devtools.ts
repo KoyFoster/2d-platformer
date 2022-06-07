@@ -1,8 +1,6 @@
 import { BaseObject, EntityObject, ObjectType } from './Game/Entities/objects/object';
 import { Vector } from './Game/Lib';
 
-// import devSeq from './Maps/sequences/seq_dev.json';
-
 enum CmdState {
     E,
     A,
@@ -61,6 +59,8 @@ export class DevTools {
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
+        const pause = localStorage.getItem('pauseDev');
+        if (pause && pause === 'true') this.pause = true;
 
         // Entity creation properties
         this.inputBuffer = '';
@@ -149,16 +149,10 @@ export class DevTools {
                     this.updatePreview();
                     break;
                 case 'c':
-                    if (!e.shiftKey) {
+                    if (e.shiftKey) {
                         if (this.cmdState === CmdState.NONE) {
                             this.saveToFile();
-                            // this.clearProperties();
-                            // this.updatePreview();
                         }
-                    } else {
-                        // print to console
-                        const buffer = JSON.stringify(this.entityData);
-                        console.log(buffer);
                     }
                     break;
                 case 'enter':
@@ -548,7 +542,6 @@ export class DevTools {
 
     saveToFile() {
         console.log(
-            'Output:',
             JSON.stringify({
                 cage: 2,
                 lifetime: 10000,
@@ -563,11 +556,12 @@ export class DevTools {
         this.entityData[this.entityIndex].size = { ...this.size };
         this.entityData[this.entityIndex].vel = { ...this.vel };
 
-        this.previewEntities.forEach((ent) => {
-            ent.setAnchor({ ...this.anchor });
-            ent.setVel({ ...this.vel });
-            ent.setPos({ ...this.pos });
-            ent.setSize(this.size);
+        this.previewEntities.forEach((ent, index) => {
+            const d = this.entityData[index];
+            ent.setAnchor({ ...d.anchor });
+            ent.setVel({ ...d.vel });
+            ent.setPos({ ...d.pos });
+            ent.setSize({ ...d.size });
         });
 
         this.save();
