@@ -2,11 +2,16 @@ import { Entity, HurtBox } from "./Game/Entities";
 import { BaseObject, Entity_Object, ObjectType } from "./Game/Entities/objects/object";
 import { Vector } from "./Game/Lib";
 
+
+// import devSeq from './Maps/sequences/seq_dev.json';
+
 enum CmdState { E, A, P, S, V, C, NONE };
 enum SubCmd { X, Y, Add, Sub, Prev, Next, NONE };
 
 export class DevTools {
     hide = false as boolean;
+    pause = false as boolean;
+
     // Entity creation properties
     inputBuffer: string;
     validInput: boolean;
@@ -65,7 +70,6 @@ export class DevTools {
             this.focusedEntity.setAnchor({ ...this.anchor });
             this.entityData.push();
 
-
             this.addEntity({
                 type: ObjectType.Base,
                 anchor: this.anchor,
@@ -92,6 +96,11 @@ export class DevTools {
             localStorage.setItem('hideDev', this.hide ? 'true' : 'false');
             return;
         }
+        if (e.key === 'F4') {
+            this.pause = !this.pause;
+            localStorage.setItem('pauseDev', this.pause ? 'true' : 'false');
+            return;
+        }
 
         if (this.subCmd === SubCmd.NONE)
             switch (e.key.toLowerCase()) {
@@ -104,8 +113,9 @@ export class DevTools {
                 case 'c':
                     if (!e.shiftKey) {
                         if (this.cmdState === CmdState.NONE) {
-                            this.clearProperties();
-                            this.updatePreview();
+                            this.saveToFile();
+                            // this.clearProperties();
+                            // this.updatePreview();
                         }
                     }
                     else {
@@ -408,7 +418,8 @@ export class DevTools {
             let prevFilter = ctx!.filter;
             if (ent === this.focusedEntity) { ctx!.filter = 'invert(75%)' }
 
-            ent!.tick([], delta);
+            if (!this.pause)
+                ent!.tick([], delta);
             ent!.draw(ctx, offset);
             ctx!.filter = prevFilter;
         })
@@ -430,6 +441,8 @@ export class DevTools {
         })
         this.previewEntities.push(this.focusedEntity);
         this.entityIndex = this.previewEntities.length - 1;
+
+        this.save();
     }
 
     subEntity() {
@@ -441,6 +454,8 @@ export class DevTools {
 
         if (this.entityIndex > 0) this.entityIndex--;
         this.focusedEntity = this.previewEntities[this.entityIndex];
+
+        this.save();
     }
 
     nextEntity() {
@@ -468,15 +483,32 @@ export class DevTools {
         this.vel = data.vel;
     }
 
-    updatePreview() {
+    save() {
         localStorage.setItem('lastObject', JSON.stringify(this.entityData));
+    }
+
+    saveToFile() {
+        console.log('Output:', JSON.stringify({
+            cage: 2,
+            lifetime: 10000,
+            entities: this.entityData
+        }));
+    }
+
+    updatePreview() {
+        this.entityData[this.entityIndex].anchor = { ...this.anchor };
+        this.entityData[this.entityIndex].pos = { ...this.pos };
+        this.entityData[this.entityIndex].size = { ...this.size };
+        this.entityData[this.entityIndex].vel = { ...this.vel };
 
         this.previewEntities.forEach(ent => {
-            ent.setAnchor(this.anchor);
-            ent.setVel(this.vel ? { ...this.vel } : { x: 0, y: 0, z: 0 });
+            ent.setAnchor({ ...this.anchor });
+            ent.setVel({ ...this.vel });
             ent.setPos({ ...this.pos });
             ent.setSize(this.size);
-        })
+        });
+
+        this.save();
     }
 
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {

@@ -2,9 +2,11 @@ import { Vector } from "../../Lib";
 import { Entity } from "../Entity";
 
 export enum ObjectType {
-    Base,
-    Platform,
-    HurtBox
+    Base = "base",
+    Platform = 'platform',
+    HurtBox = 'hurtbox',
+    Tractor = 'tractor',
+    Motion = 'motion'
 }
 
 export interface Entity_Object {

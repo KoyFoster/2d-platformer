@@ -1,9 +1,8 @@
 import { Entity, Player, Platform, HurtBox, Cage, Tractor } from "./Entities"
 import cages from './Maps/cages.json';
-import seq0 from './Maps/sequences/seq_4.json';
-import { Sequence } from "./Maps/sequences";
 import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
 import { DevTools } from "../devtools";
+import seq0 from './Maps/sequences/seq_dev.json';
 
 export default class Game {
     private canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -34,15 +33,14 @@ export default class Game {
         window.addEventListener('keyup', (e) => this.onKey(e, false));
 
         // load sequences
-        this.loadSequences(seq0);
+        this.loadSequence(seq0);
     }
 
-    public loadSeq(seq: any) {
-        seq.entities.forEach((e: any) => {
-            // console.warn('new sequence', e)
+    public loadSeq(ent: any) {
+        ent.forEach((e: any) => {
             let pl = null;
             switch (e.type) {
-                case "Platform":
+                case "platform":
                     pl = new Platform(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
                     pl!.setVel(e.vel);
@@ -70,21 +68,19 @@ export default class Game {
         });
     }
 
-    public loadSequences(sequences: any) {
+    public loadSequence(sequence: any) {
         // load cage
-        this.cage = new Cage(cages[sequences.cage][0], cages[sequences.cage][1], 'white');
+        this.cage = new Cage(cages[sequence.cage][0], cages[sequence.cage][1], 'white');
         this.cage.setAnchor({ x: 0.5, y: 1, z: 0 })
 
         // Set deallocation timer      
-        const { lifetime } = sequences;
+        const { lifetime } = sequence;
         const interval = setInterval(() => {
             this.backEntities = [];
             clearInterval(interval);
         }, lifetime);
 
-        sequences.sequence.forEach((seq: Sequence) => {
-            this.loadSeq(seq);
-        });
+        this.loadSeq(sequence.entities);
     }
 
     debug() {
@@ -134,7 +130,6 @@ export default class Game {
 
         // remember previous key presses
         this.prevKeys.jump = this.keys.jump;
-        this.dev.tick(this.ctx, this.camera, delta);
         // END OF LOGIC
 
         // B) DRAW
@@ -158,6 +153,7 @@ export default class Game {
 
         // UI
         // draw relative to camera
+        this.dev.tick(this.ctx, this.camera, delta);
         if (debug) {
             this.debug();
             return this.ctx;
