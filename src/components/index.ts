@@ -8,11 +8,11 @@ export const gameInit = () => {
     game = new Game();
     framelock = new FrameRate(60);
     framelock.debug = true;
-}
+};
 
 export const renderLoop = () => {
     requestAnimationFrame(renderLoop);
     framelock?.tick(game?.tick);
-}
+};
 
 export * from './canvas';

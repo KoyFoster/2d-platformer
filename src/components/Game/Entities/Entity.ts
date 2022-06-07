@@ -1,10 +1,18 @@
-import { Vector } from "../Lib";
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable unused-imports/no-unused-vars */
+import { Vector } from '../Lib';
 
 export abstract class Entity {
     protected pos: Vector;
+
     public anchor: Vector; // anchor is a percentage value of 1 to 0 of the total size of Entity.
+
     protected size: Vector;
+
     protected color: string;
+
     protected solid: boolean;
 
     constructor(pos: Vector, size: Vector, color: string) {
@@ -18,6 +26,7 @@ export abstract class Entity {
     public get getPosition() {
         return this.pos;
     }
+
     public get getSize() {
         return this.size;
     }
@@ -26,7 +35,9 @@ export abstract class Entity {
         return this.solid;
     }
 
-    public setAnchor(anchor: Vector) { this.anchor = anchor }
+    public setAnchor(anchor: Vector) {
+        this.anchor = anchor;
+    }
 
     public get bounds() {
         const xRad = this.size.x * this.anchor.x;
@@ -41,12 +52,14 @@ export abstract class Entity {
             leftRad: this.size.x - xRad,
             topRad: yRad,
             bottomRad: this.size.y - yRad,
-        }
+        };
     }
 
     public tick(entity: Entity[] | null, delta: number | undefined) { }
 
-    public affect(entity: Entity, delta: number) { return false; }
+    public affect(entity: Entity, delta: number) {
+        return false;
+    }
 
     public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
         ctx.fillStyle = this.color;
@@ -54,15 +67,11 @@ export abstract class Entity {
             this.pos.x - this.bounds.leftRad - cam.x, // x
             this.pos.y - this.bounds.topRad - cam.y, // y
             this.size.x, // w
-            this.size.y); //h
+            this.size.y
+        ); // h
     }
 
     public checkCollision(other: Entity) {
-        return (
-            this.bounds.left < other.bounds.right &&
-            this.bounds.right > other.bounds.left &&
-            this.bounds.top < other.bounds.bottom &&
-            this.bounds.bottom > other.bounds.top
-        )
+        return this.bounds.left < other.bounds.right && this.bounds.right > other.bounds.left && this.bounds.top < other.bounds.bottom && this.bounds.bottom > other.bounds.top;
     }
 }

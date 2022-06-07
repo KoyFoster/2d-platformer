@@ -1,16 +1,16 @@
-import { Vector } from "../../Lib";
-import { Entity } from "../Entity";
+import { Vector } from '../../Lib';
+import { Entity } from '../Entity';
 
 export enum ObjectType {
-    Base = "base",
+    Base = 'base',
     Platform = 'platform',
     HurtBox = 'hurtbox',
     Tractor = 'tractor',
-    Motion = 'motion'
+    Motion = 'motion',
 }
 
-export interface Entity_Object {
-    type: ObjectType
+export interface EntityObject {
+    type: ObjectType;
     anchor: Vector;
     pos: Vector;
     size: Vector;
@@ -26,9 +26,17 @@ export class BaseObject extends Entity {
         this.solid = false;
     }
 
-    public setVel(vel: Vector) { this.vel = vel }
-    public setPos(pos: Vector) { this.pos = pos }
-    public setSize(size: Vector) { this.size = size }
+    public setVel(vel: Vector) {
+        this.vel = vel;
+    }
+
+    public setPos(pos: Vector) {
+        this.pos = pos;
+    }
+
+    public setSize(size: Vector) {
+        this.size = size;
+    }
 
     public tick(platforms: Entity[], delta: number) {
         this.pos.x += this.vel.x * delta;

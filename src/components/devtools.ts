@@ -1,39 +1,63 @@
-import { Entity, HurtBox } from "./Game/Entities";
-import { BaseObject, Entity_Object, ObjectType } from "./Game/Entities/objects/object";
-import { Vector } from "./Game/Lib";
-
+import { BaseObject, EntityObject, ObjectType } from './Game/Entities/objects/object';
+import { Vector } from './Game/Lib';
 
 // import devSeq from './Maps/sequences/seq_dev.json';
 
-enum CmdState { E, A, P, S, V, C, NONE };
-enum SubCmd { X, Y, Add, Sub, Prev, Next, NONE };
+enum CmdState {
+    E,
+    A,
+    P,
+    S,
+    V,
+    C,
+    NONE,
+}
+enum SubCmd {
+    X,
+    Y,
+    Add,
+    Sub,
+    Prev,
+    Next,
+    NONE,
+}
 
 export class DevTools {
     hide = false as boolean;
+
     pause = false as boolean;
 
     // Entity creation properties
     inputBuffer: string;
+
     validInput: boolean;
+
     cmdState: CmdState;
+
     subCmd: SubCmd;
 
     anchor: Vector;
+
     pos: Vector;
+
     vel: Vector;
+
     size: Vector;
 
     focusedEntity = null as BaseObject | null;
+
     previewEntities = [] as BaseObject[];
-    entityData = [] as Entity_Object[];
+
+    entityData = [] as EntityObject[];
+
     entityIndex = -1 as number;
 
     // states
     lockAxis: boolean; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
-        let lastObject = localStorage.getItem('lastObject') as Entity_Object[] | string | null;
-        lastObject = lastObject ? JSON.parse(lastObject as string) as Entity_Object[] : [] as Entity_Object[];
+        let lastObject = localStorage.getItem('lastObject') as EntityObject[] | string | null;
+        lastObject = lastObject ? (JSON.parse(lastObject as string) as EntityObject[]) : ([] as EntityObject[]);
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
@@ -46,14 +70,14 @@ export class DevTools {
 
         if (lastObject.length > 0) {
             // copy over settings of first element
-            const first = lastObject[0]
+            const first = lastObject[0];
             this.anchor = first.anchor;
             this.pos = first.pos;
             this.size = first.size;
             this.vel = first.vel;
 
             // load in all objects
-            lastObject.forEach(ent => {
+            lastObject.forEach((ent) => {
                 this.addEntity(ent, false);
             });
         }
@@ -64,25 +88,27 @@ export class DevTools {
             this.size = { x: 10, y: 10, z: 0 };
             this.vel = { x: 0, y: 0, z: 0 };
 
-
             this.focusedEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
-            this.focusedEntity.setVel({ ...this.vel })
+            this.focusedEntity.setVel({ ...this.vel });
             this.focusedEntity.setAnchor({ ...this.anchor });
             this.entityData.push();
 
-            this.addEntity({
-                type: ObjectType.Base,
-                anchor: this.anchor,
-                pos: this.pos,
-                size: this.size,
-                vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
-                color: 'white'
-            }, false);
+            this.addEntity(
+                {
+                    type: ObjectType.Base,
+                    anchor: this.anchor,
+                    pos: this.pos,
+                    size: this.size,
+                    vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
+                    color: 'white',
+                },
+                false
+            );
         }
 
         this.lockAxis = true;
 
-        // SETUP LISTENER        
+        // SETUP LISTENER
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e, offset));
         window.addEventListener('keyup', (e) => this.commands(e));
@@ -104,12 +130,24 @@ export class DevTools {
 
         if (this.subCmd === SubCmd.NONE)
             switch (e.key.toLowerCase()) {
-                case 'e': this.cmdState = CmdState.E; break;
-                case 'a': this.cmdState = CmdState.A; break;
-                case 'p': this.cmdState = CmdState.P; break;
-                case 'v': this.cmdState = CmdState.V; break;
-                case 's': this.cmdState = CmdState.S; break;
-                case 'r': this.updatePreview(); break;
+                case 'e':
+                    this.cmdState = CmdState.E;
+                    break;
+                case 'a':
+                    this.cmdState = CmdState.A;
+                    break;
+                case 'p':
+                    this.cmdState = CmdState.P;
+                    break;
+                case 'v':
+                    this.cmdState = CmdState.V;
+                    break;
+                case 's':
+                    this.cmdState = CmdState.S;
+                    break;
+                case 'r':
+                    this.updatePreview();
+                    break;
                 case 'c':
                     if (!e.shiftKey) {
                         if (this.cmdState === CmdState.NONE) {
@@ -117,16 +155,17 @@ export class DevTools {
                             // this.clearProperties();
                             // this.updatePreview();
                         }
-                    }
-                    else {
+                    } else {
                         // print to console
                         const buffer = JSON.stringify(this.entityData);
                         console.log(buffer);
                     }
                     break;
                 case 'enter':
-                case 'escape': break;
-                default: break;
+                case 'escape':
+                    break;
+                default:
+                    break;
             }
 
         this.subCommands(e);
@@ -164,7 +203,8 @@ export class DevTools {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case CmdState.A:
@@ -178,7 +218,8 @@ export class DevTools {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case CmdState.P:
@@ -192,7 +233,8 @@ export class DevTools {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case CmdState.S:
@@ -207,7 +249,8 @@ export class DevTools {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case CmdState.V:
@@ -221,17 +264,19 @@ export class DevTools {
                         case 'escape':
                             this.cmdState = CmdState.NONE;
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
-                default: break;
+                default:
+                    break;
             }
         else {
             this.captureInput(key);
 
             // check input
             let buffer = 0 as number | null;
-            console.log(key)
+            console.log(key);
             switch (key) {
                 case 'escape':
                     this.subCmd = SubCmd.NONE;
@@ -239,68 +284,74 @@ export class DevTools {
 
                 // Apply changes to entity property
                 case 'enter':
-                    let change = false;
-                    let context = null as Vector | null;
-                    switch (this.cmdState) {
-                        case CmdState.A:
-                            context = this.anchor;
-                            break;
-                        case CmdState.P:
-                            context = this.pos;
-                            break;
-                        case CmdState.S:
-                            context = this.size;
-                            break;
-                        case CmdState.V:
-                            context = this.vel;
-                            break;
-                    }
-
-                    // check reference
-                    if (context === null) {
-                        context = { x: 0, y: 0, z: 0 };
-                    }
-                    buffer = this.getValidInput(true);
-
-                    // validate input
-                    if (!Number.isNaN(buffer)) {
-                        switch (this.subCmd) {
-                            case SubCmd.X:
-                                context.x = buffer;
-                                this.subCmd = SubCmd.NONE;
+                    {
+                        let change = false;
+                        let context = null as Vector | null;
+                        switch (this.cmdState) {
+                            case CmdState.A:
+                                context = this.anchor;
                                 break;
-                            case SubCmd.Y:
-                                context.y = buffer;
-                                this.subCmd = SubCmd.NONE;
+                            case CmdState.P:
+                                context = this.pos;
+                                break;
+                            case CmdState.S:
+                                context = this.size;
+                                break;
+                            case CmdState.V:
+                                context = this.vel;
                                 break;
                             default:
                                 break;
                         }
-                        switch (this.cmdState) {
-                            case CmdState.A:
-                                change = true;
-                                this.anchor = context;
-                                break;
-                            case CmdState.P:
-                                change = true;
-                                this.pos = context;
-                                break;
-                            case CmdState.S:
-                                change = true;
-                                this.size = context;
-                                break;
-                            case CmdState.V:
-                                change = true;
-                                this.vel = context;
-                                break;
+
+                        // check reference
+                        if (context === null) {
+                            context = { x: 0, y: 0, z: 0 };
                         }
+                        buffer = this.getValidInput(true);
+
+                        // validate input
+                        if (!Number.isNaN(buffer)) {
+                            switch (this.subCmd) {
+                                case SubCmd.X:
+                                    context.x = buffer;
+                                    this.subCmd = SubCmd.NONE;
+                                    break;
+                                case SubCmd.Y:
+                                    context.y = buffer;
+                                    this.subCmd = SubCmd.NONE;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            switch (this.cmdState) {
+                                case CmdState.A:
+                                    change = true;
+                                    this.anchor = context;
+                                    break;
+                                case CmdState.P:
+                                    change = true;
+                                    this.pos = context;
+                                    break;
+                                case CmdState.S:
+                                    change = true;
+                                    this.size = context;
+                                    break;
+                                case CmdState.V:
+                                    change = true;
+                                    this.vel = context;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+
+                        // on successful update, reset preview
+                        if (change) this.updatePreview();
                     }
-
-                    // on successful update, reset preview
-                    if (change)
-                        this.updatePreview();
-
                     break; // end of Enter
+                default:
+                    break;
             } // end of key switch
         }
     }
@@ -310,95 +361,99 @@ export class DevTools {
             case 'backspace':
                 this.inputBuffer = this.inputBuffer.slice(0, this.inputBuffer.length - 1);
                 break;
+            default:
+                break;
         }
         if (key.length > 1) return;
         switch (key) {
-            default: this.inputBuffer += key; break;
+            default:
+                this.inputBuffer += key;
+                break;
         }
     }
 
-    showCommands(ctx: CanvasRenderingContext2D, offset: Vector) {
-        ctx!.font = "24px Ariel";
+    showCommands(ctx: CanvasRenderingContext2D) {
+        if (ctx === null) return;
+        ctx.font = '24px Ariel';
         let yPos = 20;
-        ctx!.fillText(`Commands:`, 650, yPos += 30);
+        ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                ctx!.fillText(`E: Entity Options: ${this.previewEntities.length} present`, 700, yPos += 30);
-                ctx!.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, yPos += 30);
-                ctx!.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, yPos += 30);
-                ctx!.fillText(`V: set Velocity${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, yPos += 30);
-                ctx!.fillText(`S: set Size: [${this.size.x}, ${this.size.y}]`, 700, yPos += 30);
-                ctx!.fillText(`R: reload preview`, 700, yPos += 30);
-                ctx!.fillText(`C: cancel settings`, 700, yPos += 30);
+                ctx.fillText(`E: Entity Options: ${this.previewEntities.length} present`, 700, (yPos += 30));
+                ctx.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, (yPos += 30));
+                ctx.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, (yPos += 30));
+                ctx.fillText(`V: set Velocity${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, (yPos += 30));
+                ctx.fillText(`S: set Size: [${this.size.x}, ${this.size.y}]`, 700, (yPos += 30));
+                ctx.fillText(`R: reload preview`, 700, (yPos += 30));
+                ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
                 break;
             case CmdState.E:
                 switch (this.subCmd) {
                     default:
-                        ctx!.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, yPos += 30);
+                        ctx.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.A:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'P', true, this.anchor, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'P', true, this.anchor, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'P', false, this.anchor, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'P', false, this.anchor, (yPos += 30));
                         break;
                     default:
-                        ctx!.fillText(`A: enter x(X), enter y(Y): [${this.anchor.x}, ${this.anchor.y}]`, 700, yPos += 30);
+                        ctx.fillText(`A: enter x(X), enter y(Y): [${this.anchor.x}, ${this.anchor.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'P', true, this.pos, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'P', true, this.pos, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'P', false, this.pos, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'P', false, this.pos, (yPos += 30));
                         break;
                     default:
-                        ctx!.fillText(`P: enter x(X), enter y(Y): [${this.pos.x}, ${this.pos.y}]`, 700, yPos += 30);
+                        ctx.fillText(`P: enter x(X), enter y(Y): [${this.pos.x}, ${this.pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.S:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'S', true, this.size, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'S', true, this.size, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'S', false, this.size, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'S', false, this.size, (yPos += 30));
                         break;
                     default:
-                        ctx!.fillText(`S: enter x(X), enter y(Y): [${this.size.x}, ${this.size.y}]`, 700, yPos += 30);
+                        ctx.fillText(`S: enter x(X), enter y(Y): [${this.size.x}, ${this.size.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.V:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'V', true, this.vel, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'V', true, this.vel, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'V', false, this.vel, yPos += 30);
+                        this.vectorMsgTemplate(ctx, 'V', false, this.vel, (yPos += 30));
                         break;
                     default:
-                        ctx!.fillText(`V: enter x(X), enter y(Y)${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, yPos += 30);
+                        ctx.fillText(`V: enter x(X), enter y(Y)${this.vel ? `: [${this.vel.x}, ${this.vel.y}]` : ''}`, 700, (yPos += 30));
                         break;
                 }
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
     vectorMsgTemplate(ctx: CanvasRenderingContext2D, letter: string, isx: boolean, val: Vector | null, yPos: number) {
-        if (isx)
-            ctx!.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val!.y : 'NaN'}]`, 700, yPos);
-        else
-            ctx!.fillText(`${letter} y: type or click: [${val ? val!.x : 'NaN'}, ${this.inputBuffer}]`, 700, yPos);
+        if (isx) ctx.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val.y : 'NaN'}]`, 700, yPos);
+        else ctx.fillText(`${letter} y: type or click: [${val ? val.x : 'NaN'}, ${this.inputBuffer}]`, 700, yPos);
     }
 
     clearProperties() {
@@ -409,27 +464,28 @@ export class DevTools {
         this.subCmd = SubCmd.NONE;
         this.anchor = { x: 0.5, y: 0.5, z: 0.5 };
         this.pos = { x: 0, y: 0, z: 0 };
-        this.vel = { x: 0, y: 0, z: 0 }
-        this.size = { x: 10, y: 10, z: 0 }
+        this.vel = { x: 0, y: 0, z: 0 };
+        this.size = { x: 10, y: 10, z: 0 };
     }
 
     preview(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
         this.previewEntities.forEach((ent) => {
-            let prevFilter = ctx!.filter;
-            if (ent === this.focusedEntity) { ctx!.filter = 'invert(75%)' }
+            const prevFilter = ctx.filter;
+            if (ent === this.focusedEntity) {
+                ctx.filter = 'invert(75%)';
+            }
 
-            if (!this.pause)
-                ent!.tick([], delta);
-            ent!.draw(ctx, offset);
-            ctx!.filter = prevFilter;
-        })
+            if (this.pause) ent.tick([], delta);
+            ent.draw(ctx, offset);
+            ctx.filter = prevFilter;
+        });
     }
 
     // automatically takes the current objects settings and translates them to the right
-    addEntity(data: Entity_Object, bump: boolean) {
+    addEntity(data: EntityObject, bump: boolean) {
         console.log('addEntity');
         this.focusedEntity = new BaseObject({ ...data.pos }, { ...data.size }, 'green');
-        this.focusedEntity.setVel({ ...data.vel })
+        this.focusedEntity.setVel({ ...data.vel });
         this.focusedEntity.setAnchor({ ...data.anchor });
         this.entityData.push({
             type: ObjectType.Base,
@@ -437,8 +493,8 @@ export class DevTools {
             pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : data.pos,
             size: data.size,
             vel: data.vel ? data.vel : { x: 0, y: 0, z: 0 },
-            color: 'white'
-        })
+            color: 'white',
+        });
         this.previewEntities.push(this.focusedEntity);
         this.entityIndex = this.previewEntities.length - 1;
 
@@ -452,7 +508,7 @@ export class DevTools {
         this.previewEntities = this.previewEntities.filter((ent, index) => index !== this.entityIndex);
         this.entityData = this.entityData.filter((data, index) => index !== this.entityIndex);
 
-        if (this.entityIndex > 0) this.entityIndex--;
+        if (this.entityIndex > 0) this.entityIndex -= 1;
         this.focusedEntity = this.previewEntities[this.entityIndex];
 
         this.save();
@@ -461,7 +517,8 @@ export class DevTools {
     nextEntity() {
         if (this.entityData.length - 1 <= this.entityIndex) return;
         console.log('nextEntity');
-        this.focusedEntity = this.previewEntities[++this.entityIndex];
+        this.entityIndex += 1;
+        this.focusedEntity = this.previewEntities[this.entityIndex];
         const data = this.entityData[this.entityIndex];
 
         // update local data
@@ -470,10 +527,12 @@ export class DevTools {
         this.size = data.size;
         this.vel = data.vel;
     }
+
     prevEntity() {
-        if (2 > this.entityIndex) return;
+        if (this.entityIndex < 2) return;
         console.log('prevEntity');
-        this.focusedEntity = this.previewEntities[--this.entityIndex];
+        this.entityIndex -= 1;
+        this.focusedEntity = this.previewEntities[this.entityIndex];
         const data = this.entityData[this.entityIndex];
 
         // update local data
@@ -488,11 +547,14 @@ export class DevTools {
     }
 
     saveToFile() {
-        console.log('Output:', JSON.stringify({
-            cage: 2,
-            lifetime: 10000,
-            entities: this.entityData
-        }));
+        console.log(
+            'Output:',
+            JSON.stringify({
+                cage: 2,
+                lifetime: 10000,
+                entities: this.entityData,
+            })
+        );
     }
 
     updatePreview() {
@@ -501,7 +563,7 @@ export class DevTools {
         this.entityData[this.entityIndex].size = { ...this.size };
         this.entityData[this.entityIndex].vel = { ...this.vel };
 
-        this.previewEntities.forEach(ent => {
+        this.previewEntities.forEach((ent) => {
             ent.setAnchor({ ...this.anchor });
             ent.setVel({ ...this.vel });
             ent.setPos({ ...this.pos });
@@ -515,7 +577,7 @@ export class DevTools {
         if (this.hide) return;
         this.preview(ctx, offset, delta);
 
-        this.showCommands(ctx, offset)
+        this.showCommands(ctx);
     }
 
     onClick(e: MouseEvent, offset: Vector) {
@@ -540,22 +602,24 @@ export class DevTools {
                 switch (this.subCmd) {
                     case SubCmd.X:
                         if (e.button === 0) {
-                            this.inputBuffer = Math.abs((this.pos.x - this.getMousePos(e, offset).x)).toString();
+                            this.inputBuffer = Math.abs(this.pos.x - this.getMousePos(e, offset).x).toString();
                         }
                         break;
                     case SubCmd.Y:
                         if (e.button === 0) {
-                            this.inputBuffer = Math.abs((this.getMousePos(e, offset).y - this.pos.y)).toString();
+                            this.inputBuffer = Math.abs(this.getMousePos(e, offset).y - this.pos.y).toString();
                         }
                         break;
                     default:
                         break;
                 }
                 break;
+            default:
+                break;
         }
     }
 
     getMousePos(e: MouseEvent, offset: Vector): Vector {
-        return { x: e.offsetX + offset.x, y: e.offsetY + offset.y, z: 0 }
+        return { x: e.offsetX + offset.x, y: e.offsetY + offset.y, z: 0 };
     }
 }

@@ -1,8 +1,8 @@
-import { HurtType, Vector } from "../../Lib";
-import { Entity } from "../Entity";
-import { Player } from "../Player";
+import { HurtType, Vector } from '../../Lib';
+import { Entity } from '../Entity';
+import { Player } from '../Player';
 
-export class HurtBox_Motion extends Entity {
+export class HurtBoxMotion extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
 
     public constructor(pos: Vector, size: Vector, color: string) {
@@ -19,7 +19,9 @@ export class HurtBox_Motion extends Entity {
         return true;
     }
 
-    public setVel(vel: Vector) { this.vel = vel }
+    public setVel(vel: Vector) {
+        this.vel = vel;
+    }
 
     public tick(platforms: Entity[], delta: number) {
         this.pos.x += this.vel.x * delta;

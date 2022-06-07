@@ -1,11 +1,20 @@
 import React from 'react';
 
 interface CanvasProps {
-    id: string,
-    width: number,
-    height: number
+    id: string;
+    width: number;
+    height: number;
 }
 
-export const Canvas = (props: CanvasProps) => {
-    return <canvas id={props.id} style={{ border: '1px solid #ddd', borderRadius: '4px' }} width={props.width} height={props.height} onClick={e => { e.preventDefault(); e.stopPropagation() }} />;
-}
+export const Canvas = ({ id, width, height }: CanvasProps) => (
+    <canvas
+        id={id}
+        style={{ border: '1px solid #ddd', borderRadius: '4px' }}
+        width={width}
+        height={height}
+        onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }}
+    />
+);

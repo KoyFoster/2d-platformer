@@ -1,7 +1,6 @@
-import { Entity } from "../../Entities";
-
 export interface Sequence {
-    name: string,
-    lifetime: number,
-    entities: []
+    name: string;
+    cage: number;
+    lifetime: number;
+    entities: [];
 }

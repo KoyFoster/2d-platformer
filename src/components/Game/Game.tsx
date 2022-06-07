@@ -1,18 +1,27 @@
-import { Entity, Player, Platform, HurtBox, Cage, Tractor } from "./Entities"
+import { Entity, Player, Platform, HurtBox, Cage, Tractor, EntityObject } from './Entities';
 import cages from './Maps/cages.json';
-import { HurtBox_Motion } from "./Entities/objects/HurtBox_Motion";
-import { DevTools } from "../devtools";
+import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
+import { DevTools } from '../devtools';
 import seq0 from './Maps/sequences/seq_dev.json';
+import { Sequence } from './Maps/sequences';
 
 export default class Game {
     private canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-    private ctx = this.canvas.getContext('2d')!; // The '!' tells TS that the context always exists
+
+    private ctx = this.canvas.getContext('2d');
+
     private backEntities = [] as Entity[];
+
     private foreEntities = [] as Entity[];
+
     private frame = [] as Entity[];
+
     private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
+
     private player = new Player({ x: 0, y: 24, z: 0 });
+
     private cage = new Cage(cages[2][0], cages[2][1], 'white');
+
     private keys = {
         left: false,
         right: false,
@@ -20,60 +29,61 @@ export default class Game {
         down: false,
 
         jump: false,
-    }
-    private prevKeys = { jump: false }
+    };
+
+    private prevKeys = { jump: false };
 
     private dev = new DevTools(this.camera);
 
     public constructor() {
-        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 })
+        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
 
         // Input Listeners
         window.addEventListener('keydown', (e) => this.onKey(e, true));
         window.addEventListener('keyup', (e) => this.onKey(e, false));
 
         // load sequences
-        this.loadSequence(seq0);
+        this.loadSequence(seq0 as Sequence);
     }
 
-    public loadSeq(ent: any) {
-        ent.forEach((e: any) => {
+    public loadSeq(ent: EntityObject[]) {
+        ent.forEach((e: EntityObject) => {
             let pl = null;
             switch (e.type) {
-                case "platform":
+                case 'platform':
                     pl = new Platform(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
-                    pl!.setVel(e.vel);
+                    pl.setVel(e.vel);
                     this.foreEntities.push(pl);
                     break;
-                case "tractor":
+                case 'tractor':
                     pl = new Tractor(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
-                    pl!.setVel(e.vel);
+                    pl.setVel(e.vel);
                     this.foreEntities.push(pl);
                     break;
-                case "motion":
-                    pl = new HurtBox_Motion(e.pos, e.size, e.color);
+                case 'motion':
+                    pl = new HurtBoxMotion(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
-                    pl!.setVel(e.vel);
+                    pl.setVel(e.vel);
                     this.backEntities.push(pl);
                     break;
                 default:
                     pl = new HurtBox(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
-                    pl!.setVel(e.vel);
+                    pl.setVel(e.vel);
                     this.backEntities.push(pl);
                     break;
             }
         });
     }
 
-    public loadSequence(sequence: any) {
+    public loadSequence(sequence: Sequence) {
         // load cage
         this.cage = new Cage(cages[sequence.cage][0], cages[sequence.cage][1], 'white');
-        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 })
+        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
 
-        // Set deallocation timer      
+        // Set deallocation timer
         const { lifetime } = sequence;
         const interval = setInterval(() => {
             this.backEntities = [];
@@ -84,45 +94,46 @@ export default class Game {
     }
 
     debug() {
-        this.ctx!.fillText(`Entities:${this.backEntities.length}`, 33, 110);
+        if (this.ctx === null) return;
+        this.ctx.fillText(`Entities:${this.backEntities.length}`, 33, 110);
     }
 
     // Game Logic
     // return ctx when in debug mode
     tick = (delta: number, debug: boolean) => {
-
+        if (this.ctx === null) return;
         // backdrop
-        this.ctx!.fillStyle = "#000000";
-        this.ctx!.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // A) LOGIC
         // backEntities
-        this.backEntities.forEach(entity => {
+        this.backEntities.forEach((entity) => {
             entity.tick(null, delta);
         });
-        this.foreEntities.forEach(entity => {
+        this.foreEntities.forEach((entity) => {
             entity.tick(null, delta);
         });
 
-        const jump = this.keys.jump;
-        const jumphold = (this.keys.jump && this.prevKeys.jump);
+        const { jump } = this.keys;
+        const jumphold = this.keys.jump && this.prevKeys.jump;
         this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick([...this.backEntities, ...this.foreEntities], delta);
         // keep player insize cage
         this.cage.affect(this.player);
 
         // do to player player velocity being calculated all throughout prior to this
-        // we need to calculate platform affects in post in order for motion based 
+        // we need to calculate platform affects in post in order for motion based
         // affects to apply properly
         // check affects
-        this.backEntities.forEach(entity => {
+        this.backEntities.forEach((entity) => {
             if (this.player.checkCollision(entity)) {
                 // Done last to ensure that the final velocity affects are calculated
                 // perform entity affect on player
                 entity.affect(this.player, delta);
             }
         });
-        this.foreEntities.forEach(entity => {
+        this.foreEntities.forEach((entity) => {
             if (this.player.checkCollision(entity)) {
                 entity.affect(this.player, delta);
             }
@@ -136,16 +147,16 @@ export default class Game {
         // player should show behind the objects
         this.player.draw(this.ctx, this.camera);
         // everything should not show outside the cage, unless they are intelligent objects, like backEntities and blasters
-        this.backEntities.forEach(entity => {
-            entity.draw(this.ctx, this.camera);
+        this.backEntities.forEach((entity) => {
+            if (this.ctx !== null) entity.draw(this.ctx, this.camera);
         });
-        // hard coded rectangles outside of cage        
-        this.ctx!.fillStyle = "#000000";
-        this.ctx!.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.ctx!.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
+        // hard coded rectangles outside of cage
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
+        this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
         this.cage.draw(this.ctx, this.camera);
-        this.foreEntities.forEach(entity => {
-            entity.draw(this.ctx, this.camera);
+        this.foreEntities.forEach((entity) => {
+            if (this.ctx !== null) entity.draw(this.ctx, this.camera);
         });
 
         this.player.UI(this.ctx);
@@ -158,31 +169,31 @@ export default class Game {
             this.debug();
             return this.ctx;
         }
-    }
+    };
 
     private onKey = (ev: KeyboardEvent, down: boolean) => {
         switch (ev.key) {
-            case "ArrowLeft":
-            case "a":
+            case 'ArrowLeft':
+            case 'a':
                 this.keys.left = down;
                 break;
-            case "ArrowRight":
-            case "d":
+            case 'ArrowRight':
+            case 'd':
                 this.keys.right = down;
                 break;
-            case "ArrowUp":
-            case "w":
+            case 'ArrowUp':
+            case 'w':
                 this.keys.up = down;
                 break;
-            case "ArrowDown":
-            case "s":
+            case 'ArrowDown':
+            case 's':
                 this.keys.down = down;
                 break;
-            case " ":
-            case "Spacebar":
+            case ' ':
+            case 'Spacebar':
                 this.keys.jump = down;
                 break;
-            default: return;
+            default:
         }
-    }
+    };
 }

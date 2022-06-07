@@ -1,28 +1,43 @@
-import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__, __terminal__ } from "../Lib";
-import { Entity } from "./Entity";
+import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__, __terminal__ } from '../Lib';
+import { Entity } from './Entity';
 
 export class Player extends Entity {
     private health = 92 as number;
+
     private maxHealth = 92 as number;
 
     private tickDmg = 0 as number;
+
     private tickAmt = 0 as number;
 
     private tickRate = 1 as number;
+
     private curTick = 1 as number;
 
     private power = 1 as number; // Idea: give place the option for more dmg or the skipping of previous phases
+
     private invincibility = 0 as number;
+
     private iframes = 500; // ms
 
     private vel: Vector = { x: 0, y: 0, z: 0 };
+
     public grounded = false;
+
     public jumping = 0;
-    private jump_timer = 0.66; //second
+
+    private jump_timer = 0.66; // second
+
     private jump_disabled = false;
 
-    public get getVelocity() { return this.vel; }
-    public get getGrounded() { return this.grounded; }
+    public get getVelocity() {
+        return this.vel;
+    }
+
+    public get getGrounded() {
+        return this.grounded;
+    }
+
     public set setGround(grounded: boolean) {
         if (grounded) {
             this.grounded = grounded;
@@ -30,12 +45,20 @@ export class Player extends Entity {
         }
     }
 
-    public setVel(vel: Vector) { this.vel = vel }
-    public setPos(pos: Vector) { this.pos = pos }
-    public setSize(size: Vector) { this.size = size }
+    public setVel(vel: Vector) {
+        this.vel = vel;
+    }
+
+    public setPos(pos: Vector) {
+        this.pos = pos;
+    }
+
+    public setSize(size: Vector) {
+        this.size = size;
+    }
 
     public constructor(pos: Vector) {
-        super(pos, { x: __size__, y: __size__, z: __size__ }, "red");
+        super(pos, { x: __size__, y: __size__, z: __size__ }, 'red');
         this.anchor = { x: 0.5, y: 0, z: 0.5 };
     }
 
@@ -61,7 +84,7 @@ export class Player extends Entity {
         // O(2*n) complexity has to occur
         // X
         this.pos.x += this.vel.x * delta;
-        platforms.forEach(platform => {
+        platforms.forEach((platform) => {
             if (this.checkCollision(platform)) {
                 // x axis collision
                 if (platform.isSolid) {
@@ -74,7 +97,7 @@ export class Player extends Entity {
         // Y Collision
         this.pos.y += this.vel.y * delta;
         this.grounded = false;
-        platforms.forEach(platform => {
+        platforms.forEach((platform) => {
             if (this.checkCollision(platform)) {
                 if (platform.isSolid) {
                     // y-axis collision
@@ -93,13 +116,16 @@ export class Player extends Entity {
         // Jump state decay. Used for short hopping
         if (this.jumping > 0) {
             this.jumping -= delta;
-        }
-        else this.jumping = 0;
+        } else this.jumping = 0;
     }
 
     public jump(press: boolean, hold: boolean, delta: number) {
         // jump release
-        if (!hold && this.jumping > 0) { this.vel.y = 0; this.jumping = 0; this.jump_disabled = true; }
+        if (!hold && this.jumping > 0) {
+            this.vel.y = 0;
+            this.jumping = 0;
+            this.jump_disabled = true;
+        }
 
         // continue jumping
         if (hold && this.jumping > 0 && this.jump_disabled === false) this.pos.y -= __jump__ * delta;
@@ -156,45 +182,47 @@ export class Player extends Entity {
 
     public debug(ctx: CanvasRenderingContext2D) {
         let basePos = 140;
-        ctx!.fillText(`Grounded:${this.grounded}`, 33, basePos);
-        ctx!.fillText(`Jumping:${this.jumping}`, 33, basePos += 30);
-        ctx!.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, basePos += 30);
-        ctx!.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, basePos += 30);
+        ctx.fillText(`Grounded:${this.grounded}`, 33, basePos);
+        ctx.fillText(`Jumping:${this.jumping}`, 33, (basePos += 30));
+        ctx.fillText(`Vel:(${this.vel.x}, ${this.vel.y})`, 33, (basePos += 30));
+        ctx.fillText(`Pos:${this.pos.x}, ${this.pos.y}`, 33, (basePos += 30));
         basePos += 30;
-        ctx!.fillText(`Health:${this.health}`, 33, basePos += 30);
-        ctx!.fillText(`TickDmg:${this.tickDmg}`, 33, basePos += 30);
-        ctx!.fillText(`CurTick:${this.curTick}`, 33, basePos += 30);
-        ctx!.fillText(`CurTick:${this.tickAmt}`, 33, basePos += 30);
+        ctx.fillText(`Health:${this.health}`, 33, (basePos += 30));
+        ctx.fillText(`TickDmg:${this.tickDmg}`, 33, (basePos += 30));
+        ctx.fillText(`CurTick:${this.curTick}`, 33, (basePos += 30));
+        ctx.fillText(`CurTick:${this.tickAmt}`, 33, (basePos += 30));
     }
 
     public UI(ctx: CanvasRenderingContext2D) {
         // Healthbar
-        const x = 500, y = 640, w = 250, h = 50;
-        let lostHp = this.tickDmg / this.maxHealth;
-        let hp = (this.health / this.maxHealth) - lostHp;
+        const x = 500;
+        const y = 640;
+        const w = 250;
+        const h = 50;
+        const lostHp = this.tickDmg / this.maxHealth;
+        let hp = this.health / this.maxHealth - lostHp;
         if (hp < 0) hp = 0;
 
         // Name
-        // ctx!.font = '30px Mars Needs Cunnilingus';
-        // ctx!.font = '30px DotumChe';
-        // ctx!.font = '30px Hachicro';
-        // ctx!.font = '30px Crypt of Tomorrow';
-        // ctx!.font = '30px 8bitoperator JVE';
-        ctx!.font = '30px Comic Sans MS';
-        ctx!.fillStyle = "white";
-        ctx!.fillText("CHAR    LV 19        HP", x - 316, y + 35);
-        if (this.tickDmg) ctx!.fillStyle = "purple";
-        ctx!.fillText(`KR ${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
-
+        // ctx.font = '30px Mars Needs Cunnilingus';
+        // ctx.font = '30px DotumChe';
+        // ctx.font = '30px Hachicro';
+        // ctx.font = '30px Crypt of Tomorrow';
+        // ctx.font = '30px 8bitoperator JVE';
+        ctx.font = '30px Comic Sans MS';
+        ctx.fillStyle = 'white';
+        ctx.fillText('CHAR    LV 19        HP', x - 316, y + 35);
+        if (this.tickDmg) ctx.fillStyle = 'purple';
+        ctx.fillText(`KR ${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
 
         // HP backdrop
-        ctx!.fillStyle = "red";
-        ctx!.fillRect(x, y, w, h);
+        ctx.fillStyle = 'red';
+        ctx.fillRect(x, y, w, h);
         // Lost HP
-        ctx!.fillStyle = "purple";
-        ctx!.fillRect(x, y, (w * hp) + (w * lostHp), h);
+        ctx.fillStyle = 'purple';
+        ctx.fillRect(x, y, w * hp + w * lostHp, h);
         // True HP
-        ctx!.fillStyle = "yellow";
-        ctx!.fillRect(x, y, (w * hp), h);
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(x, y, w * hp, h);
     }
 }

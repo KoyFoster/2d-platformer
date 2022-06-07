@@ -1,6 +1,14 @@
 module.exports = {
-    extends: ['airbnb', 'prettier'],
-    parser: '@babel/eslint-parser',
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
+    },
+    extends: ['airbnb', 'prettier', 'eslint:recommended', 'plugin:@typescript-eslint/eslint-recommended', 'plugin:@typescript-eslint/recommended'],
+    // parser: '@babel/eslint-parser',
+    parser: '@typescript-eslint/parser',
     parserOptions: {
         requireConfigFile: false,
         babelOptions: {
@@ -84,7 +92,7 @@ module.exports = {
         ],
         radix: 0,
         'no-shadow': [
-            2,
+            0,
             {
                 hoist: 'all',
                 allow: ['resolve', 'reject', 'done', 'next', 'err', 'error'],
@@ -121,5 +129,5 @@ module.exports = {
         '@typescript-eslint/comma-dangle': ['off'],
         'react/jsx-props-no-spreading': 'off',
     },
-    plugins: ['html', 'prettier', 'react-hooks', 'unused-imports'],
+    plugins: ['html', 'prettier', 'react-hooks', 'unused-imports', '@typescript-eslint'],
 };
