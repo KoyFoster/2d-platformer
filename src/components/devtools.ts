@@ -1,4 +1,5 @@
-import { EntityData, EntityName, GenericObject } from './Game/Entities';
+import { EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
+import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
 import { Vector } from './Game/Lib';
 
 enum CmdState {
@@ -46,7 +47,7 @@ export class DevTools {
 
     size: Vector;
 
-    type = EntityName.Base as EntityName;
+    type = EntityName.Generic as EntityName;
 
     focusedEntity = null as GenericObject | null;
 
@@ -96,7 +97,7 @@ export class DevTools {
             this.size = { x: 10, y: 10, z: 0 };
             this.vel = { x: 0, y: 0, z: 0 };
 
-            this.focusedEntity = new GenericObject({ ...this.pos }, { ...this.size }, 'green');
+            this.focusedEntity = this.createEntity(this.type, { ...this.pos }, { ...this.size }, 'green');
             this.focusedEntity.setVel({ ...this.vel });
             this.focusedEntity.setAnchor({ ...this.anchor });
             this.data.push();
@@ -134,7 +135,7 @@ export class DevTools {
             return;
         }
 
-        if (this.subCmd === SubCmd.NONE)
+        if (this.subCmd === SubCmd.NONE && this.cmdState === CmdState.NONE)
             switch (e.key.toLowerCase()) {
                 case 't':
                     this.cmdState = CmdState.T;
@@ -182,12 +183,38 @@ export class DevTools {
         return result;
     }
 
+    changeEntityType(type: EntityName) {
+        if (this.type !== type) {
+            this.type = type;
+            this.entities[this.index] = this.createEntity(type, this.pos, this.size, 'white');
+        }
+    }
+
     // enum SubCmd { Px, Py, Sx, Sy, Vx, Vy, NONE };
     subCommands(e: KeyboardEvent) {
         const key = e.key.toLowerCase();
         if (this.subCmd === SubCmd.NONE)
             switch (this.cmdState) {
                 case CmdState.NONE:
+                    break;
+                case CmdState.T:
+                    switch (key) {
+                        case 'p':
+                            this.changeEntityType(EntityName.Platform);
+                            break;
+                        case 'H':
+                            this.changeEntityType(EntityName.HurtBox);
+                            break;
+                        case 'M':
+                            this.changeEntityType(EntityName.Motion);
+                            break;
+                        case 'escape':
+                            this.cmdState = CmdState.NONE;
+                            break;
+                        default:
+                            break;
+                    }
+
                     break;
                 case CmdState.E:
                     switch (key) {
@@ -392,7 +419,7 @@ export class DevTools {
         ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                ctx.fillText(`T: Set Entity Type: ${this.focusedEntity.type} present`, 700, (yPos += 30));
+                ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'} present`, 700, (yPos += 30));
                 ctx.fillText(`E: Entity Options: ${this.entities.length} present`, 700, (yPos += 30));
                 ctx.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, (yPos += 30));
                 ctx.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, (yPos += 30));
@@ -401,6 +428,13 @@ export class DevTools {
                 ctx.fillText(`R: reload preview`, 700, (yPos += 30));
                 ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
                 ctx.fillText(`c: move camera`, 700, (yPos += 30));
+                break;
+            case CmdState.T:
+                switch (this.subCmd) {
+                    default:
+                        ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M)`, 700, (yPos += 30));
+                        break;
+                }
                 break;
             case CmdState.E:
                 switch (this.subCmd) {
@@ -503,6 +537,24 @@ export class DevTools {
         });
     }
 
+    createEntity(type: EntityName, pos: Vector, size: Vector, color: string): GenericObject {
+        switch (type) {
+            case EntityName.HurtBox:
+                return new HurtBox(pos, size, color);
+                break;
+            case EntityName.Motion:
+                return new HurtBoxMotion(pos, size, color);
+                break;
+            case EntityName.Platform:
+                return new Platform(pos, size, color);
+                break;
+            case EntityName.Generic:
+            default:
+                return new GenericObject(pos, size, color);
+                break;
+        }
+    }
+
     // automatically takes the current objects settings and translates them to the right
     addEntity(data: EntityData, bump: boolean) {
         console.log('addEntity');
@@ -515,7 +567,7 @@ export class DevTools {
             color: 'white',
         };
         this.data.push(d);
-        this.focusedEntity = new GenericObject({ ...d.pos }, { ...d.size }, 'green');
+        this.focusedEntity = this.createEntity(this.type, { ...d.pos }, { ...d.size }, 'green');
         this.focusedEntity.setVel({ ...d.vel });
         this.focusedEntity.setAnchor({ ...d.anchor });
         this.entities.push(this.focusedEntity);

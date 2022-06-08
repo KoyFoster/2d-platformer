@@ -1,5 +1,5 @@
 import { Vector } from '../../Lib';
-import { Entity } from '../Entity';
+import { Entity, EntityName } from '../Entity';
 import { Player } from '../Player';
 
 export class Tractor extends Entity {
@@ -7,6 +7,7 @@ export class Tractor extends Entity {
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
+        this.type = EntityName.Tractor;
         this.solid = false;
     }
 

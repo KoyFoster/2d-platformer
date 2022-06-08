@@ -6,6 +6,7 @@ import { Vector } from '../Lib';
 
 export enum EntityName {
     Base = 'base',
+    Cage = 'cage',
     Generic = 'generic',
     Platform = 'platform',
     HurtBox = 'hurtbox',

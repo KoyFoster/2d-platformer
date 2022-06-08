@@ -1,19 +1,29 @@
 import { Vector } from '../../Lib';
-import { Entity } from '../Entity';
+import { Entity, EntityName } from '../Entity';
+import { GenericObject } from './object';
 
-export class Platform extends Entity {
-    private vel: Vector = { x: 0, y: 0, z: 0 };
-
-    // public constructor(pos: Vector, size: Vector, color: string) {
-    //     super(pos, size, color);
-    // }
+export class Platform extends GenericObject {
+    public constructor(pos = { x: 0, y: 0, z: 0 } as Vector, size = { x: 0, y: 0, z: 0 } as Vector, color = 'white' as string) {
+        super(pos, size, color);
+    }
 
     public setVel(vel: Vector) {
+        this.type = EntityName.Platform;
         this.vel = vel;
     }
 
     public tick(platforms: Entity[], delta: number) {
         this.pos.x += this.vel.x * delta;
         this.pos.y += this.vel.y * delta;
+    }
+
+    public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
+        ctx.strokeStyle = this.color;
+        ctx.strokeRect(
+            this.pos.x - this.bounds.leftRad - cam.x, // x
+            this.pos.y - this.bounds.topRad - cam.y, // y
+            this.size.x, // w
+            this.size.y // h
+        );
     }
 }

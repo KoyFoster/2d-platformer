@@ -1,18 +1,15 @@
 import { Vector } from '../../Lib';
-import { Entity } from '../Entity';
+import { EntityName } from '../Entity';
 import { Player } from '../Player';
+import { GenericObject } from './object';
 
-export class Cage extends Entity {
-    private vel: Vector = { x: 0, y: 0, z: 0 };
+export class Cage extends GenericObject {
+    protected vel: Vector = { x: 0, y: 0, z: 0 };
 
-    private lineThickness = 12;
-
-    // ESLINT says this is useless
-    // public constructor(pos: Vector, size: Vector, color: string) {
-    //     super(pos, size, color);
-    // }
+    protected lineThickness = 12;
 
     public setVel(vel: Vector) {
+        this.type = EntityName.Cage;
         this.vel = vel;
     }
 
@@ -23,8 +20,8 @@ export class Cage extends Entity {
             this.pos.x - this.bounds.leftRad - cam.x, // x
             this.pos.y - this.bounds.topRad - cam.y, // y
             this.size.x, // w
-            this.size.y
-        ); // h
+            this.size.y // h
+        );
     }
 
     public affect(player: Player) {

@@ -1,12 +1,12 @@
 import { HurtType, Vector } from '../../Lib';
-import { Entity } from '../Entity';
+import { Entity, EntityName } from '../Entity';
 import { Player } from '../Player';
+import { GenericObject } from './object';
 
-export class HurtBox extends Entity {
-    private vel: Vector = { x: 0, y: 0, z: 0 };
-
+export class HurtBox extends GenericObject {
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
+        this.type = EntityName.HurtBox;
         this.solid = false;
     }
 
