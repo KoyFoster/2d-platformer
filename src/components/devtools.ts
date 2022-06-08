@@ -54,7 +54,7 @@ export class DevTools {
 
     eData = [] as EntityData[];
 
-    index = -1 as number;
+    index = 0 as number;
 
     // states
     snapToGridX = 10 as number; // as in only translate on x or y axis
@@ -91,7 +91,7 @@ export class DevTools {
         }
         // create initial entity
         else {
-            this.data.anchor = { x: 0.5, y: 0.5, z: 0.5 };
+            this.data.anchor = { x: 0, y: 0, z: 0.5 };
             this.data.pos = { x: 0, y: 0, z: 0 };
             this.data.size = { x: 10, y: 10, z: 0 };
             this.data.vel = { x: 0, y: 0, z: 0 };
@@ -166,7 +166,12 @@ export class DevTools {
                     break;
                 case 'c':
                     if (e.shiftKey) {
-                        if (this.cmdState === CmdState.NONE) {
+                        if (e.shiftKey && e.altKey) {
+                            this.entities = [];
+                            this.eData = [];
+                            this.index = -1;
+                            this.save();
+                        } else if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
                     } else this.cmdState = CmdState.Cam;
@@ -228,6 +233,7 @@ export class DevTools {
                         case '=':
                         case '+':
                             this.addEntity(this.eData[this.index], true);
+                            this.index = this.entities.length - 1;
                             this.save();
                             break;
                         case '-':
@@ -422,7 +428,7 @@ export class DevTools {
         switch (this.cmdState) {
             case CmdState.NONE:
                 ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'} present`, 700, (yPos += 30));
-                ctx.fillText(`E: Entity Options: ${this.entities.length} present`, 700, (yPos += 30));
+                ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length} present`, 700, (yPos += 30));
                 ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
                 ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
                 ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
@@ -578,7 +584,6 @@ export class DevTools {
         this.data = this.eData[this.eData.length - 1];
         this.focusedEntity = this.createEntity(d);
         this.entities.push(this.focusedEntity);
-        this.index = this.entities.length - 1;
     }
 
     subEntity() {
@@ -645,28 +650,25 @@ export class DevTools {
     onClick(e: MouseEvent, offset: Vector) {
         switch (this.cmdState) {
             case CmdState.P:
-                let { x, y } = this.getMousePos(e, offset);
-                x -= x % this.snapToGridX;
-                y -= y % this.snapToGridY;
-                console.log({ x, y });
-                this.data.pos = { x, y, z: this.data.pos.z };
-                this.reload();
-                this.save();
+                if (e.button === 0) {
+                    let { x, y } = this.getMousePos(e, offset);
+                    x -= x % this.snapToGridX;
+                    y -= y % this.snapToGridY;
+                    console.log({ x, y });
+                    this.data.pos = { x, y, z: this.data.pos.z };
+                    this.reload();
+                    this.save();
+                }
                 break;
             case CmdState.S:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (e.button === 0) {
-                            this.inputBuffer = Math.abs(this.data.pos.x - this.getMousePos(e, offset).x).toString();
-                        }
-                        break;
-                    case SubCmd.Y:
-                        if (e.button === 0) {
-                            this.inputBuffer = Math.abs(this.getMousePos(e, offset).y - this.data.pos.y).toString();
-                        }
-                        break;
-                    default:
-                        break;
+                if (e.button === 0) {
+                    let { x, y } = this.getMousePos(e, offset);
+                    x = Math.abs(this.data.pos.x - this.getMousePos(e, offset).x);
+                    y = Math.abs(this.getMousePos(e, offset).y - this.data.pos.y);
+                    console.log({ x, y });
+                    this.data.size = { x, y, z: this.data.pos.z };
+                    this.reload();
+                    this.save();
                 }
                 break;
             case CmdState.Cam:
