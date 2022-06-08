@@ -194,7 +194,7 @@ export class DevTools {
                         } else if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
-                    } else this.cmdState = CmdState.Cam;
+                    }
                     break;
                 case 'enter':
                 case 'escape':
@@ -334,15 +334,6 @@ export class DevTools {
                             break;
                     }
                     break;
-                case CmdState.Cam:
-                    switch (key) {
-                        case 'escape':
-                            this.cmdState = CmdState.NONE;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
                 default:
                     break;
             }
@@ -460,7 +451,6 @@ export class DevTools {
                 this.ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
                 this.ctx.fillText(`R: reload preview`, 700, (yPos += 30));
                 this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
-                this.ctx.fillText(`c: move camera: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                 break;
             case CmdState.T:
                 switch (this.subCmd) {
@@ -519,13 +509,6 @@ export class DevTools {
                         break;
                     default:
                         this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.data.vel.x}, ${this.data.vel.y}]`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            case CmdState.Cam:
-                switch (this.subCmd) {
-                    default:
-                        this.ctx.fillText(`c: LC to set, MC to reset: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -693,7 +676,7 @@ export class DevTools {
 
     onScroll(e: WheelEvent) {
         // Zoom in and Out
-        this.cam.z += e.deltaY * 0.001;
+        this.cam.z -= e.deltaY * 0.001;
     }
 
     onClick(e: MouseEvent) {
@@ -718,13 +701,6 @@ export class DevTools {
                     this.data.size = { x, y, z: this.data.pos.z };
                     this.reload();
                     this.save();
-                }
-                break;
-            case CmdState.Cam:
-                if (e.button === 0) {
-                    this.cam = { x: this.cam.x + e.offsetX, y: this.cam.y + e.offsetY, z: this.cam.z };
-                } else if (e.button === 1) {
-                    this.cam = { x: this.origin.x, y: this.origin.y, z: this.cam.z };
                 }
                 break;
             default:
