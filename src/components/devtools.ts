@@ -228,9 +228,11 @@ export class DevTools {
                         case '=':
                         case '+':
                             this.addEntity(this.eData[this.index], true);
+                            this.save();
                             break;
                         case '-':
                             this.subEntity();
+                            this.save();
                             break;
                         case 'arrowright':
                             this.nextEntity();
@@ -338,9 +340,6 @@ export class DevTools {
                             case CmdState.A:
                                 context = this.data.anchor;
                                 break;
-                            case CmdState.P:
-                                context = this.data.pos;
-                                break;
                             case CmdState.S:
                                 context = this.data.size;
                                 break;
@@ -375,10 +374,6 @@ export class DevTools {
                                 case CmdState.A:
                                     change = true;
                                     this.data.anchor = context;
-                                    break;
-                                case CmdState.P:
-                                    change = true;
-                                    this.data.pos = context;
                                     break;
                                 case CmdState.S:
                                     change = true;
@@ -465,14 +460,8 @@ export class DevTools {
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
-                    case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'P', true, this.data.pos, (yPos += 30));
-                        break;
-                    case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'P', false, this.data.pos, (yPos += 30));
-                        break;
                     default:
-                        ctx.fillText(`P: enter x(X), enter y(Y): [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
+                        ctx.fillText(`P: click to move: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -590,8 +579,6 @@ export class DevTools {
         this.focusedEntity = this.createEntity(d);
         this.entities.push(this.focusedEntity);
         this.index = this.entities.length - 1;
-
-        this.save();
     }
 
     subEntity() {
@@ -658,26 +645,13 @@ export class DevTools {
     onClick(e: MouseEvent, offset: Vector) {
         switch (this.cmdState) {
             case CmdState.P:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (e.button === 0) {
-                            let { x } = this.getMousePos(e, offset);
-                            x -= x % this.snapToGridX;
-                            console.log({ x });
-                            this.inputBuffer = x.toString();
-                        }
-                        break;
-                    case SubCmd.Y:
-                        if (e.button === 0) {
-                            let { y } = this.getMousePos(e, offset);
-                            y -= y % this.snapToGridX;
-                            console.log({ y });
-                            this.inputBuffer = y.toString();
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                let { x, y } = this.getMousePos(e, offset);
+                x -= x % this.snapToGridX;
+                y -= y % this.snapToGridY;
+                console.log({ x, y });
+                this.data.pos = { x, y, z: this.data.pos.z };
+                this.reload();
+                this.save();
                 break;
             case CmdState.S:
                 switch (this.subCmd) {
