@@ -54,7 +54,9 @@ export class DevTools {
     index = -1 as number;
 
     // states
-    lockAxis: boolean; // as in only translate on x or y axis
+    snapToGridX = 10 as number; // as in only translate on x or y axis
+
+    snapToGridY = 10 as number; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
         let lastObject = localStorage.getItem('lastObject') as EntityObject[] | string | null;
@@ -102,14 +104,12 @@ export class DevTools {
                     anchor: this.anchor,
                     pos: this.pos,
                     size: this.size,
-                    vel: this.vel ? this.vel : { x: 0, y: 0, z: 0 },
+                    vel: this.vel,
                     color: 'white',
                 },
                 false
             );
         }
-
-        this.lockAxis = true;
 
         // SETUP LISTENER
         // Input Listeners
@@ -186,6 +186,7 @@ export class DevTools {
                 case CmdState.E:
                     switch (key) {
                         case '=':
+                        case '+':
                             this.addEntity(this.data[this.index], true);
                             break;
                         case '-':
@@ -498,17 +499,18 @@ export class DevTools {
     // automatically takes the current objects settings and translates them to the right
     addEntity(data: EntityObject, bump: boolean) {
         console.log('addEntity');
-        this.focusedEntity = new BaseObject({ ...data.pos }, { ...data.size }, 'green');
-        this.focusedEntity.setVel({ ...data.vel });
-        this.focusedEntity.setAnchor({ ...data.anchor });
-        this.data.push({
+        const d = {
             type: ObjectType.Base,
-            anchor: data.anchor,
-            pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : data.pos,
-            size: data.size,
-            vel: data.vel ? data.vel : { x: 0, y: 0, z: 0 },
+            anchor: { ...data.anchor },
+            pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : { ...data.pos },
+            size: { ...data.size },
+            vel: { ...data.vel },
             color: 'white',
-        });
+        };
+        this.data.push(d);
+        this.focusedEntity = new BaseObject({ ...d.pos }, { ...d.size }, 'green');
+        this.focusedEntity.setVel({ ...d.vel });
+        this.focusedEntity.setAnchor({ ...d.anchor });
         this.entities.push(this.focusedEntity);
         this.index = this.entities.length - 1;
 
@@ -587,6 +589,8 @@ export class DevTools {
         this.save();
     }
 
+    // displayGrid() { }
+
     tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
         if (this.hide) return;
         this.preview(ctx, offset, delta);
@@ -604,12 +608,18 @@ export class DevTools {
                 switch (this.subCmd) {
                     case SubCmd.X:
                         if (e.button === 0) {
-                            this.inputBuffer = this.getMousePos(e, offset).x.toString();
+                            let { x } = this.getMousePos(e, offset);
+                            x -= x % this.snapToGridX;
+                            console.log({ x });
+                            this.inputBuffer = x.toString();
                         }
                         break;
                     case SubCmd.Y:
                         if (e.button === 0) {
-                            this.inputBuffer = this.getMousePos(e, offset).y.toString();
+                            let { y } = this.getMousePos(e, offset);
+                            y -= y % this.snapToGridX;
+                            console.log({ y });
+                            this.inputBuffer = y.toString();
                         }
                         break;
                     default:
