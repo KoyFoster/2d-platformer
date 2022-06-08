@@ -3,7 +3,7 @@ import { Entity, EntityName } from '../Entity';
 import { GenericObject } from './object';
 
 export class Platform extends GenericObject {
-    public constructor(pos = { x: 0, y: 0, z: 0 } as Vector, size = { x: 0, y: 0, z: 0 } as Vector, color = 'white' as string) {
+    public constructor(pos = { x: 0, y: 0, z: 0 } as Vector, size = { x: 100, y: 10, z: 0 } as Vector, color = 'white' as string) {
         super(pos, size, color);
     }
 

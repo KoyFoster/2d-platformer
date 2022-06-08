@@ -23,7 +23,7 @@ export interface EntityData {
 }
 
 export abstract class Entity {
-    public type = EntityName.Base as string;
+    public type = EntityName.Base as EntityName;
 
     protected pos: Vector;
 

@@ -1,5 +1,5 @@
 import { Vector } from '../../Lib';
-import { Entity } from '../Entity';
+import { Entity, EntityData } from '../Entity';
 
 export class GenericObject extends Entity {
     protected vel: Vector = { x: 0, y: 0, z: 0 };
@@ -7,6 +7,17 @@ export class GenericObject extends Entity {
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
         this.solid = true;
+    }
+
+    public get data(): EntityData {
+        return {
+            type: this.type,
+            anchor: this.anchor,
+            pos: this.pos,
+            vel: this.vel,
+            size: this.size,
+            color: this.color,
+        };
     }
 
     public setVel(vel: Vector) {

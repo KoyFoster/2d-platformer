@@ -62,32 +62,32 @@ export class DevTools {
     snapToGridY = 10 as number; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
-        let lastObject = localStorage.getItem('lastObject') as EntityData[] | string | null;
-        lastObject = lastObject ? (JSON.parse(lastObject as string) as EntityData[]) : ([] as EntityData[]);
+        let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;
+        lastSave = lastSave ? (JSON.parse(lastSave as string) as EntityData[]) : ([] as EntityData[]);
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
         const pause = localStorage.getItem('pauseDev');
         if (pause && pause === 'true') this.pause = true;
 
+        console.log(lastSave);
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
 
-        if (lastObject.length > 0) {
+        if (lastSave.length > 0) {
             // copy over settings of first element
-            const first = lastObject[0];
+            const first = lastSave[0];
             this.data.anchor = first.anchor;
             this.data.pos = first.pos;
             this.data.size = first.size;
             this.data.vel = first.vel;
 
+            this.eData = lastSave;
             // load in all objects
-            lastObject.forEach((ent) => {
-                this.addEntity(ent, false);
-            });
+            this.loadEntities();
         }
         // create initial entity
         else {
@@ -96,7 +96,7 @@ export class DevTools {
             this.data.size = { x: 10, y: 10, z: 0 };
             this.data.vel = { x: 0, y: 0, z: 0 };
 
-            this.focusedEntity = this.createEntity(this.data.type, { ...this.data.pos }, { ...this.data.size }, 'green');
+            this.focusedEntity = this.createEntity(this.data);
             this.focusedEntity.setVel({ ...this.data.vel });
             this.focusedEntity.setAnchor({ ...this.data.anchor });
 
@@ -117,6 +117,14 @@ export class DevTools {
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e, offset));
         window.addEventListener('keyup', (e) => this.commands(e));
+    }
+
+    loadEntities() {
+        this.entities = [];
+        // load in all objects
+        this.eData.forEach((ent) => {
+            this.addEntity(ent, false, false);
+        });
     }
 
     // Commands
@@ -154,12 +162,12 @@ export class DevTools {
                     this.cmdState = CmdState.S;
                     break;
                 case 'r':
-                    this.updatePreview();
+                    this.reload();
                     break;
                 case 'c':
                     if (e.shiftKey) {
                         if (this.cmdState === CmdState.NONE) {
-                            this.saveToFile();
+                            this.saveToConsole();
                         }
                     } else this.cmdState = CmdState.Cam;
                     break;
@@ -184,7 +192,8 @@ export class DevTools {
     changeEntityType(type: EntityName) {
         if (this.data.type !== type) {
             this.data.type = type;
-            this.entities[this.index] = this.createEntity(type, this.data.pos, this.data.size, 'white');
+            this.entities[this.index] = this.createEntity(this.data);
+            this.save();
         }
     }
 
@@ -385,7 +394,7 @@ export class DevTools {
                         }
 
                         // on successful update, reset preview
-                        if (change) this.updatePreview();
+                        if (change) this.reload();
                     }
                     break; // end of Enter
                 default:
@@ -535,26 +544,38 @@ export class DevTools {
         });
     }
 
-    createEntity(type: EntityName, pos: Vector, size: Vector, color: string): GenericObject {
-        switch (type) {
+    createEntity(data: EntityData): GenericObject {
+        let buffer;
+        switch (data.type) {
             case EntityName.HurtBox:
-                return new HurtBox(pos, size, color);
+                buffer = new HurtBox(data.pos, data.size, data.color);
+                buffer.setVel({ ...data.vel });
+                buffer.setAnchor({ ...data.anchor });
                 break;
             case EntityName.Motion:
-                return new HurtBoxMotion(pos, size, color);
+                buffer = new HurtBoxMotion(data.pos, data.size, data.color);
+                buffer.setVel({ ...data.vel });
+                buffer.setAnchor({ ...data.anchor });
                 break;
             case EntityName.Platform:
-                return new Platform(pos, size, color);
+                buffer = new Platform(data.pos);
+                data.pos = { ...buffer.data.pos };
+                data.anchor = { ...buffer.data.anchor };
+                data.size = { ...buffer.data.size };
+                data.vel = { ...buffer.data.vel };
+                data.color = buffer.data.color;
                 break;
             case EntityName.Generic:
             default:
-                return new GenericObject(pos, size, color);
+                buffer = new GenericObject(data.pos, data.size, data.color);
                 break;
         }
+
+        return buffer;
     }
 
     // automatically takes the current objects settings and translates them to the right
-    addEntity(data: EntityData, bump: boolean) {
+    addEntity(data: EntityData, bump: boolean, addData = true as boolean) {
         console.log('addEntity');
         const d = {
             type: EntityName.Base,
@@ -563,11 +584,10 @@ export class DevTools {
             size: { ...data.size },
             vel: { ...data.vel },
             color: 'white',
-        };
-        this.eData.push(d);
-        this.focusedEntity = this.createEntity(this.data.type, { ...d.pos }, { ...d.size }, 'green');
-        this.focusedEntity.setVel({ ...d.vel });
-        this.focusedEntity.setAnchor({ ...d.anchor });
+        } as EntityData;
+        if (addData) this.eData.push(d);
+        this.data = this.eData[this.eData.length - 1];
+        this.focusedEntity = this.createEntity(d);
         this.entities.push(this.focusedEntity);
         this.index = this.entities.length - 1;
 
@@ -575,13 +595,14 @@ export class DevTools {
     }
 
     subEntity() {
-        if (this.entities.length <= 2) return;
+        if (this.entities.length <= 1) return;
         console.log('subEntity');
         // remove entity as index
         this.entities = this.entities.filter((ent, index) => index !== this.index);
         this.eData = this.eData.filter((data, index) => index !== this.index);
 
         if (this.index > 0) this.index -= 1;
+        this.data = this.eData[this.index];
         this.focusedEntity = this.entities[this.index];
 
         this.save();
@@ -592,13 +613,7 @@ export class DevTools {
         console.log('nextEntity');
         this.index += 1;
         this.focusedEntity = this.entities[this.index];
-        const data = this.eData[this.index];
-
-        // update local data
-        this.data.anchor = data.anchor;
-        this.data.pos = data.pos;
-        this.data.size = data.size;
-        this.data.vel = data.vel;
+        this.data = this.eData[this.index];
     }
 
     prevEntity() {
@@ -606,20 +621,14 @@ export class DevTools {
         console.log('prevEntity');
         this.index -= 1;
         this.focusedEntity = this.entities[this.index];
-        const data = this.eData[this.index];
-
-        // update local data
-        this.data.anchor = data.anchor;
-        this.data.pos = data.pos;
-        this.data.size = data.size;
-        this.data.vel = data.vel;
+        this.data = this.eData[this.index];
     }
 
     save() {
         localStorage.setItem('lastObject', JSON.stringify(this.eData));
     }
 
-    saveToFile() {
+    saveToConsole() {
         console.log(
             JSON.stringify({
                 cage: 2,
@@ -629,21 +638,8 @@ export class DevTools {
         );
     }
 
-    updatePreview() {
-        this.eData[this.index].anchor = { ...this.data.anchor };
-        this.eData[this.index].pos = { ...this.data.pos };
-        this.eData[this.index].size = { ...this.data.size };
-        this.eData[this.index].vel = { ...this.data.vel };
-
-        this.entities.forEach((ent, index) => {
-            const d = this.eData[index];
-            ent.setAnchor({ ...d.anchor });
-            ent.setVel({ ...d.vel });
-            ent.setPos({ ...d.pos });
-            ent.setSize({ ...d.size });
-        });
-
-        this.save();
+    reload() {
+        this.loadEntities();
     }
 
     // displayGrid() { }
