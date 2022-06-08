@@ -1,7 +1,8 @@
-import { BaseObject, EntityObject, ObjectType } from './Game/Entities/objects/object';
+import { EntityData, EntityName, GenericObject } from './Game/Entities';
 import { Vector } from './Game/Lib';
 
 enum CmdState {
+    T,
     E,
     A,
     P,
@@ -45,11 +46,13 @@ export class DevTools {
 
     size: Vector;
 
-    focusedEntity = null as BaseObject | null;
+    type = EntityName.Base as EntityName;
 
-    entities = [] as BaseObject[];
+    focusedEntity = null as GenericObject | null;
 
-    data = [] as EntityObject[];
+    entities = [] as GenericObject[];
+
+    data = [] as EntityData[];
 
     index = -1 as number;
 
@@ -59,8 +62,8 @@ export class DevTools {
     snapToGridY = 10 as number; // as in only translate on x or y axis
 
     constructor(offset: Vector) {
-        let lastObject = localStorage.getItem('lastObject') as EntityObject[] | string | null;
-        lastObject = lastObject ? (JSON.parse(lastObject as string) as EntityObject[]) : ([] as EntityObject[]);
+        let lastObject = localStorage.getItem('lastObject') as EntityData[] | string | null;
+        lastObject = lastObject ? (JSON.parse(lastObject as string) as EntityData[]) : ([] as EntityData[]);
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
@@ -93,14 +96,14 @@ export class DevTools {
             this.size = { x: 10, y: 10, z: 0 };
             this.vel = { x: 0, y: 0, z: 0 };
 
-            this.focusedEntity = new BaseObject({ ...this.pos }, { ...this.size }, 'green');
+            this.focusedEntity = new GenericObject({ ...this.pos }, { ...this.size }, 'green');
             this.focusedEntity.setVel({ ...this.vel });
             this.focusedEntity.setAnchor({ ...this.anchor });
             this.data.push();
 
             this.addEntity(
                 {
-                    type: ObjectType.Base,
+                    type: EntityName.Base,
                     anchor: this.anchor,
                     pos: this.pos,
                     size: this.size,
@@ -133,6 +136,9 @@ export class DevTools {
 
         if (this.subCmd === SubCmd.NONE)
             switch (e.key.toLowerCase()) {
+                case 't':
+                    this.cmdState = CmdState.T;
+                    break;
                 case 'e':
                     this.cmdState = CmdState.E;
                     break;
@@ -386,6 +392,7 @@ export class DevTools {
         ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
+                ctx.fillText(`T: Set Entity Type: ${this.focusedEntity.type} present`, 700, (yPos += 30));
                 ctx.fillText(`E: Entity Options: ${this.entities.length} present`, 700, (yPos += 30));
                 ctx.fillText(`A: set Anchor: [${this.anchor.x}, ${this.anchor.y}]`, 700, (yPos += 30));
                 ctx.fillText(`P: set Position: [${this.pos.x}, ${this.pos.y}]`, 700, (yPos += 30));
@@ -497,10 +504,10 @@ export class DevTools {
     }
 
     // automatically takes the current objects settings and translates them to the right
-    addEntity(data: EntityObject, bump: boolean) {
+    addEntity(data: EntityData, bump: boolean) {
         console.log('addEntity');
         const d = {
-            type: ObjectType.Base,
+            type: EntityName.Base,
             anchor: { ...data.anchor },
             pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : { ...data.pos },
             size: { ...data.size },
@@ -508,7 +515,7 @@ export class DevTools {
             color: 'white',
         };
         this.data.push(d);
-        this.focusedEntity = new BaseObject({ ...d.pos }, { ...d.size }, 'green');
+        this.focusedEntity = new GenericObject({ ...d.pos }, { ...d.size }, 'green');
         this.focusedEntity.setVel({ ...d.vel });
         this.focusedEntity.setAnchor({ ...d.anchor });
         this.entities.push(this.focusedEntity);

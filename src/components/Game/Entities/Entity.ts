@@ -4,7 +4,26 @@
 /* eslint-disable unused-imports/no-unused-vars */
 import { Vector } from '../Lib';
 
+export enum EntityName {
+    Base = 'base',
+    Generic = 'generic',
+    Platform = 'platform',
+    HurtBox = 'hurtbox',
+    Tractor = 'tractor',
+    Motion = 'motion',
+}
+export interface EntityData {
+    type: EntityName;
+    anchor: Vector;
+    pos: Vector;
+    size: Vector;
+    vel: Vector;
+    color: string;
+}
+
 export abstract class Entity {
+    public type = EntityName.Base as string;
+
     protected pos: Vector;
 
     public anchor: Vector; // anchor is a percentage value of 1 to 0 of the total size of Entity.

@@ -1,24 +1,7 @@
 import { Vector } from '../../Lib';
 import { Entity } from '../Entity';
 
-export enum ObjectType {
-    Base = 'base',
-    Platform = 'platform',
-    HurtBox = 'hurtbox',
-    Tractor = 'tractor',
-    Motion = 'motion',
-}
-
-export interface EntityObject {
-    type: ObjectType;
-    anchor: Vector;
-    pos: Vector;
-    size: Vector;
-    vel: Vector;
-    color: string;
-}
-
-export class BaseObject extends Entity {
+export class GenericObject extends Entity {
     private vel: Vector = { x: 0, y: 0, z: 0 };
 
     public constructor(pos: Vector, size: Vector, color: string) {

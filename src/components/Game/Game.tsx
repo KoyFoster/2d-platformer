@@ -1,4 +1,4 @@
-import { Entity, Player, Platform, HurtBox, Cage, Tractor, EntityObject } from './Entities';
+import { Entity, Player, Platform, HurtBox, Cage, Tractor, EntityData } from './Entities';
 import cages from './Maps/cages.json';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
@@ -46,8 +46,8 @@ export default class Game {
         this.loadSequence(seq0 as Sequence);
     }
 
-    public loadSeq(ent: EntityObject[]) {
-        ent.forEach((e: EntityObject) => {
+    public loadSeq(ent: EntityData[]) {
+        ent.forEach((e: EntityData) => {
             let pl = null;
             switch (e.type) {
                 case 'platform':
