@@ -46,6 +46,8 @@ export class DevTools {
         color: '#333333' as string,
     } as EntityData;
 
+    origin = { x: 0, y: 0, z: 1 } as Vector;
+
     cam = { x: 0, y: 0, z: 1 } as Vector;
 
     focusedEntity = null as GenericObject | null;
@@ -62,7 +64,10 @@ export class DevTools {
     snapToGridY = 10 as number; // as in only translate on x or y axis
 
     constructor(defaultCam = undefined as Vector | undefined) {
-        if (defaultCam) this.cam = { ...defaultCam };
+        if (defaultCam) {
+            this.origin = { ...defaultCam };
+            this.cam = { ...defaultCam };
+        }
         let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;
         lastSave = lastSave ? (JSON.parse(lastSave as string) as EntityData[]) : ([] as EntityData[]);
 
@@ -645,23 +650,29 @@ export class DevTools {
         ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
         ctx.translate(this.cam.x, this.cam.y);
 
+        // Update Camera Zoom
+        ctx.scale(this.cam.z, this.cam.z);
+
         // Draw Entities
         this.preview(ctx, delta);
 
         // Draw Origin
         ctx.fillStyle = 'gold';
-        ctx.arc(0, 0, 6, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.fillRect(-3, -3, 6, 6);
+        // ctx.arc(0, 0, 6, 0, 2 * Math.PI);
+        // ctx.fill();
 
         // Undo Camera before UI
         ctx.translate(-this.cam.x, -this.cam.y);
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
+
         this.showCommands(ctx);
     }
 
     onScroll(e: WheelEvent) {
         console.log(e);
         // Zoom in and Out
-        this.cam.z += e.deltaY * 0.0001;
+        this.cam.z += e.deltaY * 0.001;
         console.log('cam:', this.cam.z);
     }
 
@@ -691,9 +702,9 @@ export class DevTools {
                 break;
             case CmdState.Cam:
                 if (e.button === 0) {
-                    this.cam = { x: this.cam.x + e.offsetX, y: this.cam.y + e.offsetY, z: 0 };
+                    this.cam = { x: this.cam.x + e.offsetX, y: this.cam.y + e.offsetY, z: this.cam.z };
                 } else if (e.button === 1) {
-                    this.cam = { x: 0, y: 0, z: 0 };
+                    this.cam = { x: this.origin.x, y: this.origin.y, z: this.cam.z };
                 }
                 break;
             default:
@@ -702,6 +713,6 @@ export class DevTools {
     }
 
     getMousePos(e: MouseEvent): Vector {
-        return { x: e.offsetX, y: e.offsetY, z: 0 };
+        return { x: e.offsetX - this.origin.x, y: e.offsetY - this.origin.y, z: 0 };
     }
 }
