@@ -435,7 +435,7 @@ export class DevTools {
                 ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
                 ctx.fillText(`R: reload preview`, 700, (yPos += 30));
                 ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
-                ctx.fillText(`c: move camera`, 700, (yPos += 30));
+                ctx.fillText(`c: move camera: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                 break;
             case CmdState.T:
                 switch (this.subCmd) {
@@ -642,7 +642,8 @@ export class DevTools {
 
         // draw camera
         ctx.fillStyle = 'gold';
-        ctx.fillRect(this.cam.x - offset.x, this.cam.y - offset.y, 10, 10);
+        ctx.arc(this.cam.x - offset.x, this.cam.y - offset.y, 6, 0, 2 * Math.PI);
+        ctx.fill();
 
         this.showCommands(ctx);
     }
