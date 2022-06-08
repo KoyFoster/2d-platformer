@@ -81,11 +81,11 @@ export abstract class Entity {
         return false;
     }
 
-    public draw(ctx: CanvasRenderingContext2D, cam: Vector) {
+    public draw(ctx: CanvasRenderingContext2D) {
         ctx.fillStyle = this.color;
         ctx.fillRect(
-            this.pos.x - this.bounds.leftRad - cam.x, // x
-            this.pos.y - this.bounds.topRad - cam.y, // y
+            this.pos.x - this.bounds.leftRad, // x
+            this.pos.y - this.bounds.topRad, // y
             this.size.x, // w
             this.size.y
         ); // h

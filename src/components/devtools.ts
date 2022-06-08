@@ -46,7 +46,7 @@ export class DevTools {
         color: '#333333' as string,
     } as EntityData;
 
-    cam = { x: 0, y: 0, z: 0 } as Vector;
+    cam = { x: 0, y: 0, z: 1 } as Vector;
 
     focusedEntity = null as GenericObject | null;
 
@@ -61,7 +61,8 @@ export class DevTools {
 
     snapToGridY = 10 as number; // as in only translate on x or y axis
 
-    constructor(offset: Vector) {
+    constructor(defaultCam = undefined as Vector | undefined) {
+        if (defaultCam) this.cam = { ...defaultCam };
         let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;
         lastSave = lastSave ? (JSON.parse(lastSave as string) as EntityData[]) : ([] as EntityData[]);
 
@@ -115,7 +116,8 @@ export class DevTools {
 
         // SETUP LISTENER
         // Input Listeners
-        window.addEventListener('mouseup', (e) => this.onClick(e, offset));
+        window.addEventListener('mouseup', (e) => this.onClick(e));
+        window.addEventListener('wheel', (e) => this.onScroll(e));
         window.addEventListener('keyup', (e) => this.commands(e));
     }
 
@@ -526,7 +528,7 @@ export class DevTools {
         this.data.size = { x: 10, y: 10, z: 0 };
     }
 
-    preview(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
+    preview(ctx: CanvasRenderingContext2D, delta: number) {
         this.entities.forEach((ent) => {
             const prevFilter = ctx.filter;
             if (ent === this.focusedEntity) {
@@ -534,7 +536,7 @@ export class DevTools {
             }
 
             if (this.pause) ent.tick([], delta);
-            ent.draw(ctx, { x: offset.x + this.cam.x, y: offset.y + this.cam.y, z: 0 });
+            ent.draw(ctx);
             ctx.filter = prevFilter;
         });
     }
@@ -636,23 +638,38 @@ export class DevTools {
 
     // displayGrid() { }
 
-    tick(ctx: CanvasRenderingContext2D, offset: Vector, delta: number) {
+    tick(ctx: CanvasRenderingContext2D, delta: number) {
         if (this.hide) return;
-        this.preview(ctx, offset, delta);
 
-        // draw camera
+        // B) Update Camera for Entities
+        ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+        ctx.translate(this.cam.x, this.cam.y);
+
+        // Draw Entities
+        this.preview(ctx, delta);
+
+        // Draw Origin
         ctx.fillStyle = 'gold';
-        ctx.arc(this.cam.x - offset.x, this.cam.y - offset.y, 6, 0, 2 * Math.PI);
+        ctx.arc(0, 0, 6, 0, 2 * Math.PI);
         ctx.fill();
 
+        // Undo Camera before UI
+        ctx.translate(-this.cam.x, -this.cam.y);
         this.showCommands(ctx);
     }
 
-    onClick(e: MouseEvent, offset: Vector) {
+    onScroll(e: WheelEvent) {
+        console.log(e);
+        // Zoom in and Out
+        this.cam.z += e.deltaY * 0.0001;
+        console.log('cam:', this.cam.z);
+    }
+
+    onClick(e: MouseEvent) {
         switch (this.cmdState) {
             case CmdState.P:
                 if (e.button === 0) {
-                    let { x, y } = this.getMousePos(e, offset);
+                    let { x, y } = this.getMousePos(e);
                     x -= x % this.snapToGridX;
                     y -= y % this.snapToGridY;
                     console.log({ x, y });
@@ -663,9 +680,9 @@ export class DevTools {
                 break;
             case CmdState.S:
                 if (e.button === 0) {
-                    let { x, y } = this.getMousePos(e, offset);
-                    x = Math.abs(this.data.pos.x - this.getMousePos(e, offset).x);
-                    y = Math.abs(this.getMousePos(e, offset).y - this.data.pos.y);
+                    let { x, y } = this.getMousePos(e);
+                    x = Math.abs(this.data.pos.x - this.getMousePos(e).x);
+                    y = Math.abs(this.getMousePos(e).y - this.data.pos.y);
                     console.log({ x, y });
                     this.data.size = { x, y, z: this.data.pos.z };
                     this.reload();
@@ -674,7 +691,7 @@ export class DevTools {
                 break;
             case CmdState.Cam:
                 if (e.button === 0) {
-                    this.cam = { x: this.cam.x + e.offsetX + offset.x, y: this.cam.y + e.offsetY + offset.y, z: 0 };
+                    this.cam = { x: this.cam.x + e.offsetX, y: this.cam.y + e.offsetY, z: 0 };
                 } else if (e.button === 1) {
                     this.cam = { x: 0, y: 0, z: 0 };
                 }
@@ -684,7 +701,7 @@ export class DevTools {
         }
     }
 
-    getMousePos(e: MouseEvent, offset: Vector): Vector {
-        return { x: e.offsetX + offset.x, y: e.offsetY + offset.y, z: 0 };
+    getMousePos(e: MouseEvent): Vector {
+        return { x: e.offsetX, y: e.offsetY, z: 0 };
     }
 }

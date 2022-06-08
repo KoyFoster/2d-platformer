@@ -16,7 +16,7 @@ export default class Game {
 
     private frame = [] as Entity[];
 
-    private camera = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.75, z: 0 };
+    private camera = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.5, z: 1 };
 
     private player = new Player({ x: 0, y: 24, z: 0 });
 
@@ -33,7 +33,7 @@ export default class Game {
 
     private prevKeys = { jump: false };
 
-    private dev = new DevTools({ x: 0, y: 0, z: 0 });
+    private dev = new DevTools(this.camera);
 
     public constructor() {
         this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
@@ -150,18 +150,18 @@ export default class Game {
 
         // C) DRAW
         // player should show behind the objects
-        this.player.draw(this.ctx, { x: 0, y: 0, z: 0 });
+        this.player.draw(this.ctx);
         // everything should not show outside the cage, unless they are intelligent objects, like backEntities and blasters
         this.backEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx, { x: 0, y: 0, z: 0 });
+            if (this.ctx !== null) entity.draw(this.ctx);
         });
         // hard coded rectangles outside of cage
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
         this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.cage.draw(this.ctx, { x: 0, y: 0, z: 0 });
+        this.cage.draw(this.ctx);
         this.foreEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx, { x: 0, y: 0, z: 0 });
+            if (this.ctx !== null) entity.draw(this.ctx);
         });
 
         // Undo Camera before UI
@@ -172,7 +172,7 @@ export default class Game {
 
         // UI
         // draw relative to camera
-        this.dev.tick(this.ctx, { x: 0, y: 0, z: 0 }, delta);
+        this.dev.tick(this.ctx, delta);
         if (debug) {
             this.debug();
             return this.ctx;
