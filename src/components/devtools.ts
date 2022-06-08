@@ -1,6 +1,7 @@
+import { MouseDrag } from '../utils';
 import { EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
-import { Vector } from './Game/Lib';
+import { Vector, VectorMath } from './Game/Lib';
 
 enum CmdState {
     T,
@@ -24,6 +25,10 @@ enum SubCmd {
 }
 
 export class DevTools {
+    private canvas: HTMLCanvasElement;
+
+    private ctx: CanvasRenderingContext2D;
+
     hide = false as boolean;
 
     pause = false as boolean;
@@ -63,7 +68,11 @@ export class DevTools {
 
     snapToGridY = 10 as number; // as in only translate on x or y axis
 
-    constructor(defaultCam = undefined as Vector | undefined) {
+    drag = new MouseDrag() as MouseDrag;
+
+    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, defaultCam = undefined as Vector | undefined) {
+        this.canvas = canvas;
+        this.ctx = ctx;
         if (defaultCam) {
             this.origin = { ...defaultCam };
             this.cam = { ...defaultCam };
@@ -122,10 +131,14 @@ export class DevTools {
         // SETUP LISTENER
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e));
+        window.addEventListener('mousedown', () => this.drag.doDrag(true));
+        window.addEventListener('mouseup', () => this.onMouseRelease());
+        window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('wheel', (e) => this.onScroll(e));
         window.addEventListener('keyup', (e) => this.commands(e));
     }
 
+    // destroy and recreate entities from meta data
     loadEntities() {
         this.entities = [];
         // load in all objects
@@ -394,7 +407,9 @@ export class DevTools {
                                     break;
                                 case CmdState.V:
                                     change = true;
-                                    this.data.vel = context;
+                                    console.log({ x: context.x });
+                                    this.data.vel.x = context.x;
+                                    console.log(this.index, { x: this.eData[this.index].vel.x });
                                     break;
                                 default:
                                     break;
@@ -402,7 +417,10 @@ export class DevTools {
                         }
 
                         // on successful update, reset preview
-                        if (change) this.reload();
+                        if (change) {
+                            this.reload();
+                            this.save();
+                        }
                     }
                     break; // end of Enter
                 default:
@@ -427,87 +445,87 @@ export class DevTools {
         }
     }
 
-    showCommands(ctx: CanvasRenderingContext2D) {
-        if (ctx === null) return;
-        ctx.font = '24px Ariel';
+    showCommands() {
+        this.ctx.font = '24px Ariel';
         let yPos = 20;
-        ctx.fillText(`Commands:`, 650, (yPos += 30));
+        this.ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'} present`, 700, (yPos += 30));
-                ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length} present`, 700, (yPos += 30));
-                ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
-                ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
-                ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
-                ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
-                ctx.fillText(`R: reload preview`, 700, (yPos += 30));
-                ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
-                ctx.fillText(`c: move camera: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
+                this.ctx.fillText(`F2: Hide F4: Pause(${this.pause})`, 700, (yPos += 30));
+                this.ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'}`, 700, (yPos += 30));
+                this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.eData.length} present`, 700, (yPos += 30));
+                this.ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
+                this.ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
+                this.ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
+                this.ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
+                this.ctx.fillText(`R: reload preview`, 700, (yPos += 30));
+                this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
+                this.ctx.fillText(`c: move camera: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                 break;
             case CmdState.T:
                 switch (this.subCmd) {
                     default:
-                        ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M)`, 700, (yPos += 30));
+                        this.ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M)`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.E:
                 switch (this.subCmd) {
                     default:
-                        ctx.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, (yPos += 30));
+                        this.ctx.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.A:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'P', true, this.data.anchor, (yPos += 30));
+                        this.vectorMsgTemplate('P', true, this.data.anchor, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'P', false, this.data.anchor, (yPos += 30));
+                        this.vectorMsgTemplate('P', false, this.data.anchor, (yPos += 30));
                         break;
                     default:
-                        ctx.fillText(`A: enter x(X), enter y(Y): [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
                     default:
-                        ctx.fillText(`P: click to move: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`P: click to move: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.S:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'S', true, this.data.size, (yPos += 30));
+                        this.vectorMsgTemplate('S', true, this.data.size, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'S', false, this.data.size, (yPos += 30));
+                        this.vectorMsgTemplate('S', false, this.data.size, (yPos += 30));
                         break;
                     default:
-                        ctx.fillText(`S: enter x(X), enter y(Y): [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.V:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate(ctx, 'V', true, this.data.vel, (yPos += 30));
+                        this.vectorMsgTemplate('V', true, this.data.vel, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate(ctx, 'V', false, this.data.vel, (yPos += 30));
+                        this.vectorMsgTemplate('V', false, this.data.vel, (yPos += 30));
                         break;
                     default:
-                        ctx.fillText(`V: enter x(X), enter y(Y): [${this.data.vel.x}, ${this.data.vel.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.data.vel.x}, ${this.data.vel.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.Cam:
                 switch (this.subCmd) {
                     default:
-                        ctx.fillText(`c: LC to set, MC to reset: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`c: LC to set, MC to reset: [${this.cam.x}, ${this.cam.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -516,9 +534,9 @@ export class DevTools {
         }
     }
 
-    vectorMsgTemplate(ctx: CanvasRenderingContext2D, letter: string, isx: boolean, val: Vector | null, yPos: number) {
-        if (isx) ctx.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val.y : 'NaN'}]`, 700, yPos);
-        else ctx.fillText(`${letter} y: type or click: [${val ? val.x : 'NaN'}, ${this.inputBuffer}]`, 700, yPos);
+    vectorMsgTemplate(letter: string, isx: boolean, val: Vector | null, yPos: number) {
+        if (isx) this.ctx.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val.y : 'NaN'}]`, 700, yPos);
+        else this.ctx.fillText(`${letter} y: type or click: [${val ? val.x : 'NaN'}, ${this.inputBuffer}]`, 700, yPos);
     }
 
     clearProperties() {
@@ -533,17 +551,19 @@ export class DevTools {
         this.data.size = { x: 10, y: 10, z: 0 };
     }
 
-    preview(ctx: CanvasRenderingContext2D, delta: number) {
-        this.entities.forEach((ent) => {
-            const prevFilter = ctx.filter;
-            if (ent === this.focusedEntity) {
-                ctx.filter = 'invert(75%)';
-            }
+    preview(delta: number) {
+        if (this.ctx !== null) {
+            this.entities.forEach((ent) => {
+                const prevFilter = this.ctx?.filter;
+                if (ent === this.focusedEntity) {
+                    this.ctx.filter = 'invert(75%)';
+                }
 
-            if (this.pause) ent.tick([], delta);
-            ent.draw(ctx);
-            ctx.filter = prevFilter;
-        });
+                if (this.pause) ent.tick([], delta);
+                ent.draw(this.ctx);
+                this.ctx.filter = prevFilter;
+            });
+        }
     }
 
     createEntity(data: EntityData): GenericObject {
@@ -579,16 +599,16 @@ export class DevTools {
     // automatically takes the current objects settings and translates them to the right
     addEntity(data: EntityData, bump: boolean, addData = true as boolean) {
         console.log('addEntity');
-        const d = {
-            type: EntityName.Base,
-            anchor: { ...data.anchor },
-            pos: bump ? { x: data.pos.x + data.size.x, y: data.pos.y, z: 0 } : { ...data.pos },
-            size: { ...data.size },
-            vel: { ...data.vel },
-            color: 'white',
-        } as EntityData;
-        if (addData) this.eData.push(d);
-        this.data = this.eData[this.eData.length - 1];
+        let d = data;
+        if (addData) {
+            d = { ...data };
+            if (bump) d.pos.x += d.size.x;
+            this.eData.push(d);
+            // point to the same data reference
+            this.eData[this.index] = d;
+            this.data = d;
+        }
+
         this.focusedEntity = this.createEntity(d);
         this.entities.push(this.focusedEntity);
     }
@@ -601,6 +621,7 @@ export class DevTools {
         this.eData = this.eData.filter((data, index) => index !== this.index);
 
         if (this.index > 0) this.index -= 1;
+        // point to the same data reference
         this.data = this.eData[this.index];
         this.focusedEntity = this.entities[this.index];
 
@@ -612,6 +633,7 @@ export class DevTools {
         console.log('nextEntity');
         this.index += 1;
         this.focusedEntity = this.entities[this.index];
+        // point to the same data reference
         this.data = this.eData[this.index];
     }
 
@@ -620,11 +642,13 @@ export class DevTools {
         console.log('prevEntity');
         this.index -= 1;
         this.focusedEntity = this.entities[this.index];
+        // point to the same data reference
         this.data = this.eData[this.index];
     }
 
     save() {
         localStorage.setItem('lastObject', JSON.stringify(this.eData));
+        console.log('saved:', this.eData);
     }
 
     saveToConsole() {
@@ -643,37 +667,33 @@ export class DevTools {
 
     // displayGrid() { }
 
-    tick(ctx: CanvasRenderingContext2D, delta: number) {
+    tick(delta: number) {
         if (this.hide) return;
 
         // B) Update Camera for Entities
-        ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        ctx.translate(this.cam.x, this.cam.y);
+        this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+        this.ctx.translate(this.cam.x, this.cam.y);
 
         // Update Camera Zoom
-        ctx.scale(this.cam.z, this.cam.z);
+        this.ctx.scale(this.cam.z, this.cam.z);
 
         // Draw Entities
-        this.preview(ctx, delta);
+        this.preview(delta);
 
         // Draw Origin
-        ctx.fillStyle = 'gold';
-        ctx.fillRect(-3, -3, 6, 6);
-        // ctx.arc(0, 0, 6, 0, 2 * Math.PI);
-        // ctx.fill();
+        this.ctx.fillStyle = 'gold';
+        this.ctx.fillRect(-3, -3, 6, 6);
 
         // Undo Camera before UI
-        ctx.translate(-this.cam.x, -this.cam.y);
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
+        this.ctx.translate(-this.cam.x, -this.cam.y);
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
-        this.showCommands(ctx);
+        this.showCommands();
     }
 
     onScroll(e: WheelEvent) {
-        console.log(e);
         // Zoom in and Out
         this.cam.z += e.deltaY * 0.001;
-        console.log('cam:', this.cam.z);
     }
 
     onClick(e: MouseEvent) {
@@ -714,5 +734,16 @@ export class DevTools {
 
     getMousePos(e: MouseEvent): Vector {
         return { x: e.offsetX - this.origin.x, y: e.offsetY - this.origin.y, z: 0 };
+    }
+
+    onMouseMove(e: MouseEvent) {
+        this.drag.onMove(e, this.canvas);
+        VectorMath.add(this.cam, this.drag.getDragMovement());
+    }
+
+    onMouseRelease() {
+        this.drag.doDrag(false);
+        // VectorMath.add(this.cam, this.drag.getFullDragMovement(true));
+        this.drag.doDrop();
     }
 }

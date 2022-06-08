@@ -33,7 +33,7 @@ export default class Game {
 
     private prevKeys = { jump: false };
 
-    private dev = new DevTools(this.camera);
+    private dev = new DevTools(this.canvas, this.ctx as CanvasRenderingContext2D, this.camera);
 
     public constructor() {
         this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
@@ -172,7 +172,7 @@ export default class Game {
 
         // UI
         // draw relative to camera
-        this.dev.tick(this.ctx, delta);
+        this.dev.tick(delta);
         if (debug) {
             this.debug();
             return this.ctx;

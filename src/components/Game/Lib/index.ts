@@ -3,6 +3,22 @@ export interface Vector {
     y: number;
     z: number;
 }
+
+export class VectorMath {
+    // adds second value to the first by reference
+    static add(v1: Vector, v2: Vector) {
+        v1.x += v2.x;
+        v1.y += v2.y;
+        v1.z += v2.z;
+    }
+
+    static sub(v1: Vector, v2: Vector) {
+        v1.x -= v2.x;
+        v1.y -= v2.y;
+        v1.z -= v2.z;
+    }
+}
+
 const __deltacomp1__ = 500;
 export const __size__ = 35;
 export const __speed__ = 400;
