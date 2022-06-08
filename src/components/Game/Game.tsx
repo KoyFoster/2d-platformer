@@ -16,7 +16,7 @@ export default class Game {
 
     private frame = [] as Entity[];
 
-    private camera = { x: -this.canvas.width * 0.5, y: -this.canvas.height * 0.75, z: 0 };
+    private camera = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.75, z: 0 };
 
     private player = new Player({ x: 0, y: 24, z: 0 });
 
@@ -33,7 +33,7 @@ export default class Game {
 
     private prevKeys = { jump: false };
 
-    private dev = new DevTools(this.camera);
+    private dev = new DevTools({ x: 0, y: 0, z: 0 });
 
     public constructor() {
         this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
@@ -102,6 +102,7 @@ export default class Game {
     // return ctx when in debug mode
     tick = (delta: number, debug: boolean) => {
         if (this.ctx === null) return;
+
         // backdrop
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -143,28 +144,35 @@ export default class Game {
         this.prevKeys.jump = this.keys.jump;
         // END OF LOGIC
 
-        // B) DRAW
+        // B) Update Camera for Entities
+        this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+        this.ctx.translate(this.camera.x, this.camera.y);
+
+        // C) DRAW
         // player should show behind the objects
-        this.player.draw(this.ctx, this.camera);
+        this.player.draw(this.ctx, { x: 0, y: 0, z: 0 });
         // everything should not show outside the cage, unless they are intelligent objects, like backEntities and blasters
         this.backEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx, this.camera);
+            if (this.ctx !== null) entity.draw(this.ctx, { x: 0, y: 0, z: 0 });
         });
         // hard coded rectangles outside of cage
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
         this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.cage.draw(this.ctx, this.camera);
+        this.cage.draw(this.ctx, { x: 0, y: 0, z: 0 });
         this.foreEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx, this.camera);
+            if (this.ctx !== null) entity.draw(this.ctx, { x: 0, y: 0, z: 0 });
         });
+
+        // Undo Camera before UI
+        this.ctx.translate(-this.camera.x, -this.camera.y);
 
         this.player.UI(this.ctx);
         this.player.debug(this.ctx);
 
         // UI
         // draw relative to camera
-        this.dev.tick(this.ctx, this.camera, delta);
+        this.dev.tick(this.ctx, { x: 0, y: 0, z: 0 }, delta);
         if (debug) {
             this.debug();
             return this.ctx;
