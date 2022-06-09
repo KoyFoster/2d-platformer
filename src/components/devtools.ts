@@ -605,6 +605,7 @@ export class DevTools {
         // check for mouse collision with existing entities
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(pos)) {
+                console.warn('collided');
                 this.index = index;
                 this.focusedEntity = ent;
                 this.focusedData = this.data[index];
@@ -737,8 +738,8 @@ export class DevTools {
 
         // A) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        this.ctx.translate(this.cam.x - (this.cam.x % this.snapToGridX), this.cam.y - (this.cam.y % this.snapToGridY));
-        // this.ctx.translate(this.cam.x, this.cam.y);
+        // this.ctx.translate(this.cam.x - (this.cam.x % this.snapToGridX), this.cam.y - (this.cam.y % this.snapToGridY));
+        this.ctx.translate(this.cam.x, this.cam.y);
 
         // B) Update Camera Zoom
         this.ctx.scale(this.cam.z, this.cam.z);
