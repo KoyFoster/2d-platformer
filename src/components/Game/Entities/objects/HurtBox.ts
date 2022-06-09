@@ -4,7 +4,7 @@ import { Player } from '../Player';
 import { GenericObject } from './object';
 
 export class HurtBox extends GenericObject {
-    public constructor(pos: Vector, size: Vector, color: string) {
+    public constructor(pos: Vector, size = { x: 30, y: 60, z: 0 } as Vector, color = '#ffa055' as string) {
         super(pos, size, color);
         this.type = EntityName.HurtBox;
         this.solid = false;

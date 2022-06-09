@@ -14,7 +14,6 @@ export class MouseDrag {
             this.prevPos = this.pos;
             this.pos = { x: e.offsetX, y: e.offsetY, z: 1 };
             if (this.startingPos === null) this.startingPos = this.pos;
-            // console.log('drag pos:', this.pos);
         }
     }
 
