@@ -19,8 +19,6 @@ enum SubCmd {
     Y,
     Add,
     Sub,
-    Prev,
-    Next,
     NONE,
 }
 
@@ -135,6 +133,7 @@ export class DevTools {
         // SETUP LISTENER
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e));
+        window.addEventListener('mouseup', (e) => this.selectEntity(e));
         window.addEventListener('mousedown', () => this.drag.doDrag(true));
         window.addEventListener('mouseup', (e) => this.onMouseRelease(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
@@ -268,12 +267,6 @@ export class DevTools {
                         case '-':
                             this.subEntity();
                             this.save();
-                            break;
-                        case 'arrowright':
-                            this.nextEntity();
-                            break;
-                        case 'arrowleft':
-                            this.prevEntity();
                             break;
                         case 'escape':
                             this.cmdState = CmdState.NONE;
@@ -471,7 +464,7 @@ export class DevTools {
             case CmdState.E:
                 switch (this.subCmd) {
                     default:
-                        this.ctx.fillText(`E: add(+) sub(-) prev(<-) next(->)`, 700, (yPos += 30));
+                        this.ctx.fillText(`E: add(+) sub(-)`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -557,6 +550,24 @@ export class DevTools {
                 this.ctx.filter = prevFilter;
             });
         }
+    }
+
+    selectEntity(e: MouseEvent) {
+        // mouse pos relative to space
+        const pos = { x: e.offsetX - this.cam.x, y: e.offsetY - this.cam.y, z: 0 } as Vector;
+
+        console.log({ ...pos });
+
+        // check for mouse collision with existing entities
+        this.entities.every((ent, index) => {
+            if (ent.checkCollisionV(pos)) {
+                this.index = index;
+                this.focusedEntity = ent;
+                this.data = this.eData[index];
+                return false;
+            }
+            return true;
+        });
     }
 
     createEntity(data: EntityData): GenericObject {
@@ -685,15 +696,10 @@ export class DevTools {
     tick(delta: number) {
         if (this.hide) return;
 
-        // this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        // this.ctx.translate(this.origin.x, this.origin.y);
-        // // B) Update Camera Zoom
-        // this.ctx.scale(this.cam.z, this.cam.z);
-        // this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
-
         // A) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
         this.ctx.translate(this.cam.x - (this.cam.x % this.snapToGridX), this.cam.y - (this.cam.y % this.snapToGridY));
+        // this.ctx.translate(this.cam.x, this.cam.y);
 
         // B) Update Camera Zoom
         this.ctx.scale(this.cam.z, this.cam.z);

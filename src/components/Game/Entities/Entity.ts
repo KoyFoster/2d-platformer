@@ -92,6 +92,16 @@ export abstract class Entity {
     }
 
     public checkCollision(other: Entity) {
-        return this.bounds.left < other.bounds.right && this.bounds.right > other.bounds.left && this.bounds.top < other.bounds.bottom && this.bounds.bottom > other.bounds.top;
+        return this.bounds.left < other.bounds.right &&
+            this.bounds.right > other.bounds.left &&
+            this.bounds.top < other.bounds.bottom &&
+            this.bounds.bottom > other.bounds.top;
+    }
+
+    public checkCollisionV(other: Vector) {
+        return this.bounds.left < other.x &&
+            this.bounds.right > other.x &&
+            this.bounds.top < other.y &&
+            this.bounds.bottom > other.y;
     }
 }
