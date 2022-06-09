@@ -70,11 +70,11 @@ export class DevTools {
 
     drag = new MouseDrag() as MouseDrag;
 
-    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, defaultCam = undefined as Vector | undefined) {
+    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, defaultCam: Vector, origin: Vector) {
         this.canvas = canvas;
         this.ctx = ctx;
         if (defaultCam) {
-            this.origin = { ...defaultCam };
+            this.origin = origin;
             this.cam = defaultCam;
         }
         let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;

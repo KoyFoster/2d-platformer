@@ -4,6 +4,7 @@ import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
 import seq0 from './Maps/sequences/seq_dev.json';
 import { Sequence } from './Maps/sequences';
+import { Vector } from './Lib';
 
 export default class Game {
     private canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -16,7 +17,9 @@ export default class Game {
 
     private frame = [] as Entity[];
 
-    private camera = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.5, z: 1 };
+    private origin = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.5, z: 1 } as Vector;
+
+    private camera = { ...this.origin } as Vector;
 
     private player = new Player({ x: 0, y: 24, z: 0 });
 
@@ -33,7 +36,7 @@ export default class Game {
 
     private prevKeys = { jump: false };
 
-    private dev = new DevTools(this.canvas, this.ctx as CanvasRenderingContext2D, this.camera);
+    private dev = new DevTools(this.canvas, this.ctx as CanvasRenderingContext2D, this.camera, this.origin);
 
     public constructor() {
         this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
