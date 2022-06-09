@@ -11,6 +11,7 @@ enum CmdState {
     S,
     V,
     C,
+    Color,
     Cam,
     NONE,
 }
@@ -138,6 +139,7 @@ export class DevTools {
         window.addEventListener('mouseup', (e) => this.onMouseRelease(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('wheel', (e) => this.onScroll(e));
+        window.addEventListener('keyup', (e) => this.subCommands(e));
         window.addEventListener('keyup', (e) => this.commands(e));
     }
 
@@ -202,6 +204,9 @@ export class DevTools {
                         } else if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
+                    } else {
+                        this.cmdState = CmdState.Color;
+                        this.inputBuffer = this.data.color;
                     }
                     break;
                 case 'enter':
@@ -210,8 +215,6 @@ export class DevTools {
                 default:
                     break;
             }
-
-        this.subCommands(e);
     }
 
     getValidInput(clear = false as boolean): number {
@@ -272,6 +275,28 @@ export class DevTools {
                             this.cmdState = CmdState.NONE;
                             break;
                         default:
+                            break;
+                    }
+                    break;
+                case CmdState.Color:
+                    switch (key) {
+                        case 'escape':
+                            break;
+                        case 'enter':
+                            {
+                                // validate color
+                                const lastStyle = this.ctx.fillStyle;
+                                this.ctx.fillStyle = this.inputBuffer;
+                                console.log('this.ctx.fillStyle:', this.ctx.fillStyle);
+                                if (this.ctx.fillStyle !== null) {
+                                    this.data.color = this.inputBuffer;
+                                    this.cmdState = CmdState.NONE;
+                                }
+                                this.ctx.fillStyle = lastStyle;
+                            }
+                            break;
+                        default:
+                            this.captureInput(key);
                             break;
                     }
                     break;
@@ -367,7 +392,7 @@ export class DevTools {
                                 break;
                             default:
                                 break;
-                        }
+                        } // end of cmd state
 
                         // check reference
                         if (context === null) {
@@ -444,15 +469,21 @@ export class DevTools {
         this.ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid})`, 700, (yPos += 30));
-                this.ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'}`, 700, (yPos += 30));
-                this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.eData.length} present`, 700, (yPos += 30));
-                this.ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
-                this.ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
-                this.ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
-                this.ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
-                this.ctx.fillText(`R: reload`, 700, (yPos += 30));
-                this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
+                {
+                    this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid})`, 700, (yPos += 30));
+                    this.ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'}`, 700, (yPos += 30));
+                    this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.eData.length} present`, 700, (yPos += 30));
+                    this.ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
+                    this.ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
+                    this.ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
+                    this.ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
+                    const prevStyle = this.ctx.fillStyle;
+                    this.ctx.fillStyle = this.data.color;
+                    this.ctx.fillText(`C: color: ${this.data.color}`, 700, (yPos += 30));
+                    this.ctx.fillStyle = prevStyle;
+                    this.ctx.fillText(`R: reload`, 700, (yPos += 30));
+                    this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
+                }
                 break;
             case CmdState.T:
                 switch (this.subCmd) {
@@ -466,6 +497,15 @@ export class DevTools {
                     default:
                         this.ctx.fillText(`E: add(+) sub(-)`, 700, (yPos += 30));
                         break;
+                }
+                break;
+
+            case CmdState.Color:
+                {
+                    const prevStyle = this.ctx.fillStyle;
+                    this.ctx.fillStyle = this.inputBuffer;
+                    this.ctx.fillText(`Color: [${this.inputBuffer}]`, 700, (yPos += 30));
+                    this.ctx.fillStyle = prevStyle;
                 }
                 break;
             case CmdState.A:
@@ -553,6 +593,8 @@ export class DevTools {
     }
 
     selectEntity(e: MouseEvent) {
+        if (e.button !== 0) return;
+
         // mouse pos relative to space
         const pos = { x: e.offsetX - this.cam.x, y: e.offsetY - this.cam.y, z: 0 } as Vector;
 
