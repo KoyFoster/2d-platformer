@@ -75,7 +75,7 @@ export class DevTools {
         this.ctx = ctx;
         if (defaultCam) {
             this.origin = { ...defaultCam };
-            this.cam = { ...defaultCam };
+            this.cam = defaultCam;
         }
         let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;
         lastSave = lastSave ? (JSON.parse(lastSave as string) as EntityData[]) : ([] as EntityData[]);
@@ -132,7 +132,7 @@ export class DevTools {
         // Input Listeners
         window.addEventListener('mouseup', (e) => this.onClick(e));
         window.addEventListener('mousedown', () => this.drag.doDrag(true));
-        window.addEventListener('mouseup', () => this.onMouseRelease());
+        window.addEventListener('mouseup', (e) => this.onMouseRelease(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('wheel', (e) => this.onScroll(e));
         window.addEventListener('keyup', (e) => this.commands(e));
@@ -717,7 +717,12 @@ export class DevTools {
         VectorMath.add(this.cam, this.drag.getDragMovement());
     }
 
-    onMouseRelease() {
+    onMouseRelease(e: MouseEvent) {
+        if (e.button === 1) {
+            this.cam.x = this.origin.x;
+            this.cam.y = this.origin.y;
+            this.cam.z = this.origin.z;
+        }
         this.drag.doDrag(false);
         // VectorMath.add(this.cam, this.drag.getFullDragMovement(true));
         this.drag.doDrop();

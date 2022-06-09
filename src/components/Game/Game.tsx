@@ -147,6 +147,7 @@ export default class Game {
         // B) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
         this.ctx.translate(this.camera.x, this.camera.y);
+        this.ctx.scale(this.camera.z, this.camera.z);
 
         // C) DRAW
         // player should show behind the objects
@@ -166,6 +167,7 @@ export default class Game {
 
         // Undo Camera before UI
         this.ctx.translate(-this.camera.x, -this.camera.y);
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
         this.player.UI(this.ctx);
         this.player.debug(this.ctx);
