@@ -416,7 +416,7 @@ export class DevTools {
                             }
                         }
 
-                        // on successful update, reset preview
+                        // on successful update
                         if (change) {
                             this.reload();
                             this.save();
@@ -458,7 +458,7 @@ export class DevTools {
                 this.ctx.fillText(`P: set Position: [${this.data.pos.x}, ${this.data.pos.y}]`, 700, (yPos += 30));
                 this.ctx.fillText(`V: set Velocity${this.data.vel ? `: [${this.data.vel.x}, ${this.data.vel.y}]` : ''}`, 700, (yPos += 30));
                 this.ctx.fillText(`S: set Size: [${this.data.size.x}, ${this.data.size.y}]`, 700, (yPos += 30));
-                this.ctx.fillText(`R: reload preview`, 700, (yPos += 30));
+                this.ctx.fillText(`R: reload`, 700, (yPos += 30));
                 this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
                 break;
             case CmdState.T:
@@ -547,8 +547,9 @@ export class DevTools {
         if (this.ctx !== null) {
             this.entities.forEach((ent) => {
                 const prevFilter = this.ctx?.filter;
+                // show focus
                 if (ent === this.focusedEntity) {
-                    this.ctx.filter = 'invert(75%)';
+                    this.ctx.filter = 'drop-shadow(4px 4px 0px red)'; // offx, offy, blurRad
                 }
 
                 if (this.pause) ent.tick([], delta);
