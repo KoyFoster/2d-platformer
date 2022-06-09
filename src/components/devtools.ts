@@ -471,7 +471,7 @@ export class DevTools {
         switch (this.cmdState) {
             case CmdState.NONE:
                 {
-                    this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid})`, 700, (yPos += 30));
+                    this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
                     this.ctx.fillText(`T: Set Entity Type: ${this.focusedData !== null ? this.focusedData.type : 'NA'}`, 700, (yPos += 30));
                     this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.data.length} present`, 700, (yPos += 30));
                     this.ctx.fillText(`A: set Anchor: [${this.focusedData.anchor.x}, ${this.focusedData.anchor.y}]`, 700, (yPos += 30));
