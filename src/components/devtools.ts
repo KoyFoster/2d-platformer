@@ -130,6 +130,7 @@ export class DevTools {
                 false
             );
         }
+        this.data = this.eData[0];
 
         // SETUP LISTENER
         // Input Listeners
@@ -288,7 +289,7 @@ export class DevTools {
                                 const lastStyle = this.ctx.fillStyle;
                                 this.ctx.fillStyle = this.inputBuffer;
                                 console.log('this.ctx.fillStyle:', this.ctx.fillStyle);
-                                if (this.ctx.fillStyle !== null) {
+                                if (this.ctx.fillStyle === this.inputBuffer) {
                                     this.data.color = this.inputBuffer;
                                     this.cmdState = CmdState.NONE;
                                 }
