@@ -33,6 +33,8 @@ export class DevTools {
 
     pause = false as boolean;
 
+    showGrid = false as boolean;
+
     // Entity creation properties
     inputBuffer: string;
 
@@ -84,6 +86,8 @@ export class DevTools {
         if (hide && hide === 'true') this.hide = true;
         const pause = localStorage.getItem('pauseDev');
         if (pause && pause === 'true') this.pause = true;
+        const showGrid = localStorage.getItem('showGrid');
+        if (showGrid && showGrid === 'true') this.showGrid = true;
 
         console.log(lastSave);
         // Entity creation properties
@@ -158,6 +162,11 @@ export class DevTools {
         if (e.key === 'F4') {
             this.pause = !this.pause;
             localStorage.setItem('pauseDev', this.pause ? 'true' : 'false');
+            return;
+        }
+        if (e.key === 'F8') {
+            this.showGrid = !this.showGrid;
+            localStorage.setItem('showGrid', this.showGrid ? 'true' : 'false');
             return;
         }
 
@@ -442,7 +451,7 @@ export class DevTools {
         this.ctx.fillText(`Commands:`, 650, (yPos += 30));
         switch (this.cmdState) {
             case CmdState.NONE:
-                this.ctx.fillText(`F2: Hide F4: Pause(${this.pause})`, 700, (yPos += 30));
+                this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid})`, 700, (yPos += 30));
                 this.ctx.fillText(`T: Set Entity Type: ${this.focusedEntity !== null ? this.focusedEntity.type : 'NA'}`, 700, (yPos += 30));
                 this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.eData.length} present`, 700, (yPos += 30));
                 this.ctx.fillText(`A: set Anchor: [${this.data.anchor.x}, ${this.data.anchor.y}]`, 700, (yPos += 30));
@@ -649,10 +658,12 @@ export class DevTools {
     }
 
     displayGrid() {
+        if (!this.showGrid) return;
         this.ctx.beginPath();
-        this.ctx.lineWidth = 1;
-        const h = this.ctx.canvas.height * 0.5 - this.snapToGridY;
-        const w = this.ctx.canvas.width * 0.5 - this.snapToGridX;
+        const lw = this.ctx.lineWidth;
+        this.ctx.lineWidth = 0.25;
+        const h = this.ctx.canvas.height * 0.5 - this.snapToGridY * 0.5;
+        const w = this.ctx.canvas.width * 0.5 - this.snapToGridX * 0.5;
         for (let i = this.snapToGridX - this.origin.x; i < w; i += this.snapToGridX) {
             // v
             this.ctx.moveTo(i, this.snapToGridX - this.origin.y);
@@ -667,18 +678,17 @@ export class DevTools {
         this.ctx.strokeStyle = '#f0f0f0';
         this.ctx.closePath();
         this.ctx.stroke();
+        this.ctx.lineWidth = lw;
     }
 
     tick(delta: number) {
         if (this.hide) return;
 
-        this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        this.ctx.translate(this.origin.x, this.origin.y);
-        // B) Update Camera Zoom
-        this.ctx.scale(this.cam.z, this.cam.z);
-        // display
-        this.displayGrid();
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
+        // this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+        // this.ctx.translate(this.origin.x, this.origin.y);
+        // // B) Update Camera Zoom
+        // this.ctx.scale(this.cam.z, this.cam.z);
+        // this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
         // A) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
@@ -686,6 +696,9 @@ export class DevTools {
 
         // B) Update Camera Zoom
         this.ctx.scale(this.cam.z, this.cam.z);
+
+        // display
+        this.displayGrid();
 
         // Draw Entities
         this.preview(delta);
