@@ -28,6 +28,8 @@ export class DevTools {
 
     private ctx: CanvasRenderingContext2D;
 
+    mouse = { x: 0, y: 0, z: 0 } as Vector;
+
     hide = false as boolean;
 
     pause = false as boolean;
@@ -370,7 +372,6 @@ export class DevTools {
 
             // check input
             let buffer = 0 as number | null;
-            console.log(key);
             switch (key) {
                 case 'escape':
                     this.subCmd = SubCmd.NONE;
@@ -598,13 +599,9 @@ export class DevTools {
     selectEntity(e: MouseEvent) {
         if (e.button !== 0) return;
 
-        // mouse pos relative to space
-        const pos = { x: e.offsetX - this.cam.x, y: e.offsetY - this.cam.y, z: 0 } as Vector;
-        console.log({ ...pos });
-
         // check for mouse collision with existing entities
         this.entities.every((ent, index) => {
-            if (ent.checkCollisionV(pos)) {
+            if (ent.checkCollisionV(this.mouse)) {
                 console.warn('collided');
                 this.index = index;
                 this.focusedEntity = ent;
@@ -754,6 +751,11 @@ export class DevTools {
         this.ctx.fillStyle = 'gold';
         this.ctx.fillRect(-3, -3, 6, 6);
 
+        // debug mouse
+        // Draw Origin
+        this.ctx.fillStyle = 'red';
+        this.ctx.fillRect(this.mouse.x - 2, this.mouse.y - 2, 4, 4);
+
         // Undo Camera before UI
         this.ctx.translate(-this.cam.x, -this.cam.y);
         this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
@@ -773,7 +775,6 @@ export class DevTools {
                     let { x, y } = this.getMousePos(e);
                     x -= x % this.snapToGridX;
                     y -= y % this.snapToGridY;
-                    console.log({ x, y });
                     this.focusedData.pos = { x, y, z: this.focusedData.pos.z };
                     this.reload();
                     this.save();
@@ -784,7 +785,6 @@ export class DevTools {
                     let { x, y } = this.getMousePos(e);
                     x = Math.abs(this.focusedData.pos.x - this.getMousePos(e).x);
                     y = Math.abs(this.getMousePos(e).y - this.focusedData.pos.y);
-                    console.log({ x, y });
                     this.focusedData.size = { x, y, z: this.focusedData.pos.z };
                     this.reload();
                     this.save();
@@ -800,6 +800,10 @@ export class DevTools {
     }
 
     onMouseMove(e: MouseEvent) {
+        const x = e.offsetX - this.cam.x;
+        const y = e.offsetY - this.cam.y;
+        this.mouse = { x: (x * 1) / this.cam.z, y: (y * 1) / this.cam.z, z: 0 };
+
         this.drag.onMove(e, this.canvas);
         VectorMath.add(this.cam, this.drag.getDragMovement());
     }
