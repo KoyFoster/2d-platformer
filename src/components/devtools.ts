@@ -64,9 +64,9 @@ export class DevTools {
     index = 0 as number;
 
     // states
-    snapToGridX = 10 as number; // as in only translate on x or y axis
+    snapToGridX = 20 as number; // as in only translate on x or y axis
 
-    snapToGridY = 10 as number; // as in only translate on x or y axis
+    snapToGridY = 20 as number; // as in only translate on x or y axis
 
     drag = new MouseDrag() as MouseDrag;
 
@@ -648,16 +648,43 @@ export class DevTools {
         this.loadEntities();
     }
 
-    // displayGrid() { }
+    displayGrid() {
+        this.ctx.beginPath();
+        this.ctx.lineWidth = 1;
+        const h = this.ctx.canvas.height * 0.5 - this.snapToGridY;
+        const w = this.ctx.canvas.width * 0.5 - this.snapToGridX;
+        for (let i = this.snapToGridX - this.origin.x; i < w; i += this.snapToGridX) {
+            // v
+            this.ctx.moveTo(i, this.snapToGridX - this.origin.y);
+            this.ctx.lineTo(i, h);
+        }
+        for (let i = this.snapToGridY - this.origin.y; i < h; i += this.snapToGridY) {
+            // v
+            this.ctx.moveTo(this.snapToGridY - this.origin.x, i);
+            this.ctx.lineTo(w, i);
+        }
+        // d
+        this.ctx.strokeStyle = '#f0f0f0';
+        this.ctx.closePath();
+        this.ctx.stroke();
+    }
 
     tick(delta: number) {
         if (this.hide) return;
 
-        // B) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        this.ctx.translate(this.cam.x, this.cam.y);
+        this.ctx.translate(this.origin.x, this.origin.y);
+        // B) Update Camera Zoom
+        this.ctx.scale(this.cam.z, this.cam.z);
+        // display
+        this.displayGrid();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
-        // Update Camera Zoom
+        // A) Update Camera for Entities
+        this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+        this.ctx.translate(this.cam.x - (this.cam.x % this.snapToGridX), this.cam.y - (this.cam.y % this.snapToGridY));
+
+        // B) Update Camera Zoom
         this.ctx.scale(this.cam.z, this.cam.z);
 
         // Draw Entities
