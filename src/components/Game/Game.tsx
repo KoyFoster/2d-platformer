@@ -1,5 +1,4 @@
-import { Entity, Player, Platform, HurtBox, Cage, Tractor, EntityData } from './Entities';
-import cages from './Maps/cages.json';
+import { Entity, Player, Platform, HurtBox, Tractor, EntityData } from './Entities';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
 import seq0 from './Maps/sequences/seq_dev.json';
@@ -23,8 +22,6 @@ export default class Game {
 
     private player = new Player({ x: 0, y: 24, z: 0 });
 
-    private cage = new Cage(cages[2][0], cages[2][1], 'white');
-
     private keys = {
         left: false,
         right: false,
@@ -39,8 +36,6 @@ export default class Game {
     private dev = new DevTools(this.canvas, this.ctx as CanvasRenderingContext2D, this.camera, this.origin);
 
     public constructor() {
-        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
-
         // Input Listeners
         window.addEventListener('keydown', (e) => this.onKey(e, true));
         window.addEventListener('keyup', (e) => this.onKey(e, false));
@@ -82,10 +77,6 @@ export default class Game {
     }
 
     public loadSequence(sequence: Sequence) {
-        // load cage
-        this.cage = new Cage(cages[sequence.cage][0], cages[sequence.cage][1], 'white');
-        this.cage.setAnchor({ x: 0.5, y: 1, z: 0 });
-
         // Set deallocation timer
         const { lifetime } = sequence;
         const interval = setInterval(() => {
@@ -123,8 +114,6 @@ export default class Game {
         const jumphold = this.keys.jump && this.prevKeys.jump;
         this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
         this.player.tick([...this.backEntities, ...this.foreEntities], delta);
-        // keep player insize cage
-        this.cage.affect(this.player);
 
         // do to player player velocity being calculated all throughout prior to this
         // we need to calculate platform affects in post in order for motion based
@@ -163,7 +152,6 @@ export default class Game {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
         this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.cage.draw(this.ctx);
         this.foreEntities.forEach((entity) => {
             if (this.ctx !== null) entity.draw(this.ctx);
         });
