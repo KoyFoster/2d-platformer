@@ -12,7 +12,7 @@ export class Cage extends GenericObject {
 
     public constructor(pos: Vector, size = { x: 464, y: 464, z: 1 } as Vector, color = '#eeeeee' as string) {
         super(pos, size, color);
-        this.solid = true;
+        this.solid = false;
     }
 
     public setVel(vel: Vector) {
@@ -35,25 +35,25 @@ export class Cage extends GenericObject {
     public affect(player: Player) {
         // X Collision
         let radius = this.lineWidth * 0.5 + player.bounds.leftRad;
-        if (player.getPosition.x < this.bounds.left + radius) {
-            player.getPosition.x = this.bounds.left + radius;
+        if (player.getPosition.x < this.bounds.left + radius + this.halfWidth) {
+            player.getPosition.x = this.bounds.left + radius + this.halfWidth;
             player.getVelocity.x = 0;
-        } else if (player.getPosition.x > this.bounds.right - radius) {
-            player.getPosition.x = this.bounds.right - radius;
+        } else if (player.getPosition.x > this.bounds.right - radius - this.halfWidth) {
+            player.getPosition.x = this.bounds.right - radius - this.halfWidth;
             player.getVelocity.x = 0;
         }
 
         // Y Collision
         // Bottom Collision
         radius = this.lineWidth * 0.5 + player.bounds.bottomRad;
-        if (player.getPosition.y > this.bounds.bottom - radius) {
-            player.getPosition.y = this.bounds.bottom - radius;
+        if (player.getPosition.y > this.bounds.bottom - radius - this.halfWidth) {
+            player.getPosition.y = this.bounds.bottom - radius - this.halfWidth;
             player.getVelocity.y = 0;
             player.grounded = true;
         }
         // Top Collision
-        else if (player.getPosition.y < this.bounds.top + radius) {
-            player.getPosition.y = this.bounds.top + radius;
+        else if (player.getPosition.y < this.bounds.top + radius + this.halfWidth) {
+            player.getPosition.y = this.bounds.top + radius + this.halfWidth;
             player.getVelocity.y = 0;
             player.jumping = 0;
         }
