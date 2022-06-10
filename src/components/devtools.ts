@@ -409,10 +409,12 @@ export class DevTools {
                                     change = true;
                                     switch (this.subCmd) {
                                         case SubCmd.X:
+                                            buffer -= buffer % this.snapToGridX;
                                             this.focusedData.size.x = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         case SubCmd.Y:
+                                            buffer -= buffer % this.snapToGridY;
                                             this.focusedData.size.y = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
@@ -799,9 +801,11 @@ export class DevTools {
                 break;
             case CmdState.S:
                 if (e.button === 0) {
-                    let { x, y } = this.getMousePos(e);
-                    x = Math.abs(this.focusedData.pos.x - this.getMousePos(e).x);
-                    y = Math.abs(this.getMousePos(e).y - this.focusedData.pos.y);
+                    let { x, y } = this.mouse;
+                    x -= x % this.snapToGridX;
+                    y -= y % this.snapToGridY;
+                    x = Math.abs(this.focusedData.pos.x - x);
+                    y = Math.abs(y - this.focusedData.pos.y);
                     this.focusedData.size = { x, y, z: this.focusedData.pos.z };
                     this.reload();
                     this.save();
