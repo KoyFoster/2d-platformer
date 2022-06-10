@@ -591,6 +591,10 @@ export class DevTools {
                     ent.tick([], delta);
                 }
                 ent.draw(this.ctx);
+                // draw anchor
+                this.ctx.fillStyle = 'green';
+                const pos = ent.getPosition;
+                this.ctx.fillRect(-2 + pos.x, -2 + pos.y, 4, 4);
                 this.ctx.filter = prevFilter;
             });
         }
