@@ -272,6 +272,9 @@ export class DevTools {
                         case '=':
                         case '+':
                             this.addEntity(this.data[this.index], true);
+                            this.index = this.entities.length - 1;
+                            this.focusedEntity = this.entities[this.index];
+                            this.focusedData = this.data[this.index];
                             this.save();
                             break;
                         case '-':
@@ -405,6 +408,23 @@ export class DevTools {
                                             break;
                                     }
                                     break;
+                                case CmdState.P:
+                                    change = true;
+                                    switch (this.subCmd) {
+                                        case SubCmd.X:
+                                            buffer -= buffer % this.snapToGridX;
+                                            this.focusedData.pos.x = buffer;
+                                            this.subCmd = SubCmd.NONE;
+                                            break;
+                                        case SubCmd.Y:
+                                            buffer -= buffer % this.snapToGridY;
+                                            this.focusedData.pos.y = buffer;
+                                            this.subCmd = SubCmd.NONE;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
                                 case CmdState.S:
                                     change = true;
                                     switch (this.subCmd) {
@@ -531,8 +551,14 @@ export class DevTools {
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
+                    case SubCmd.X:
+                        this.vectorMsgTemplate('P', true, this.focusedData.size, (yPos += 30));
+                        break;
+                    case SubCmd.Y:
+                        this.vectorMsgTemplate('P', false, this.focusedData.size, (yPos += 30));
+                        break;
                     default:
-                        this.ctx.fillText(`P: click to move: [${this.focusedData.pos.x}, ${this.focusedData.pos.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focusedData.pos.x}, ${this.focusedData.pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -713,8 +739,8 @@ export class DevTools {
     saveToConsole() {
         console.log(
             JSON.stringify({
-                cage: 2,
                 lifetime: 10000,
+                position: { x: 0, y: 120, z: 0 },
                 entities: this.data,
             })
         );
