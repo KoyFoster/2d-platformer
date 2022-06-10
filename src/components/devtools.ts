@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { MouseDrag } from '../utils';
 import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
@@ -253,10 +254,10 @@ export class DevTools {
                         case 'p':
                             this.changeEntityType(EntityName.Platform);
                             break;
-                        case 'H':
+                        case 'h':
                             this.changeEntityType(EntityName.HurtBox);
                             break;
-                        case 'M':
+                        case 'm':
                             this.changeEntityType(EntityName.Motion);
                             break;
                         case 'escape':
@@ -652,16 +653,20 @@ export class DevTools {
 
     // automatically takes the current objects settings and translates them to the right
     reloadEntity(i: number) {
-        const result = this.createEntity(JSON.parse(JSON.stringify(this.data[i])));
-        if (this.focusedEntity === this.entities[i]) this.focusedEntity = result.entity;
-        if (this.focusedData === this.data[i]) this.focusedData = result.data;
-        this.data[i] = result.data;
-        this.entities[i] = result.entity;
+        const result = this.createEntity(_.cloneDeep(this.data[i]));
+        if (this.focusedEntity === this.entities[i]) {
+            this.entities[i] = _.cloneDeep(result.entity);
+            this.focusedEntity = this.entities[i];
+        } else this.entities[i] = _.cloneDeep(result.entity);
+        if (this.focusedData === this.data[i]) {
+            this.data[i] = _.cloneDeep(result.data);
+            this.focusedData = this.data[i];
+        } else this.data[i] = _.cloneDeep(result.data);
     }
 
     addEntity(data: EntityData, bump: boolean, addData = true as boolean) {
         if (bump) data.pos.x += data.size.x;
-        const result = this.createEntity(JSON.parse(JSON.stringify(data)));
+        const result = this.createEntity(_.cloneDeep(data));
         if (bump) data.pos.x -= data.size.x;
         if (addData) this.data.push(result.data);
         this.entities.push(result.entity);
