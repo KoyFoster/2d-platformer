@@ -1,7 +1,7 @@
-import { Entity, Player, Platform, HurtBox, Tractor, EntityData } from './Entities';
+import { Entity, Player, Platform, HurtBox, Tractor, EntityData, Cage } from './Entities';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
-import seq0 from './Maps/sequences/seq_dev.json';
+import seq0 from './Maps/sequences/seq_1.json';
 import { Sequence } from './Maps/sequences';
 import { Vector } from './Lib';
 
@@ -48,6 +48,12 @@ export default class Game {
         ent.forEach((e: EntityData) => {
             let pl = null;
             switch (e.type) {
+                case 'cage':
+                    pl = new Cage(e.pos, e.size, e.color);
+                    pl.setAnchor(e.anchor);
+                    pl.setVel(e.vel);
+                    this.foreEntities.push(pl);
+                    break;
                 case 'platform':
                     pl = new Platform(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
@@ -78,13 +84,13 @@ export default class Game {
 
     public loadSequence(sequence: Sequence) {
         // Set deallocation timer
-        const { lifetime } = sequence;
+        const { lifetime, positions, entities } = sequence;
         const interval = setInterval(() => {
             this.backEntities = [];
             clearInterval(interval);
         }, lifetime);
 
-        this.loadSeq(sequence.entities);
+        this.loadSeq(entities);
     }
 
     debug() {

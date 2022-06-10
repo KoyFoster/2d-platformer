@@ -1,6 +1,7 @@
+import { Vector } from '../../Lib';
+
 export interface Sequence {
-    name: string;
-    cage: number;
+    position: Vector;
     lifetime: number;
     entities: [];
 }
