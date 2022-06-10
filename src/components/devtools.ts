@@ -46,6 +46,8 @@ export class DevTools {
 
     subCmd: SubCmd;
 
+    index = 0 as number;
+
     focusedData = {
         type: EntityName.Generic,
         anchor: { x: 0, y: 0, z: 0 },
@@ -53,19 +55,25 @@ export class DevTools {
         size: { x: 0, y: 0, z: 0 },
         vel: { x: 0, y: 0, z: 0 },
         color: '#333333' as string,
-    } as EntityData;
+    } as EntityData | null;
+
+    focusedEntity = null as GenericObject | null;
+
+    selectedData = [] as EntityData[];
+
+    selectedEntites = [] as GenericObject[];
+
+    clipboard = [] as EntityData[];
+
+    history = [] as EntityData[][]; // saves deep states of all major changes
 
     origin = { x: 0, y: 0, z: 1 } as Vector;
 
     cam = { x: 0, y: 0, z: 1 } as Vector;
 
-    focusedEntity = null as GenericObject | null;
-
     entities = [] as GenericObject[];
 
     data = [] as EntityData[];
-
-    index = 0 as number;
 
     // states
     snapToGridX = 10 as number; // as in only translate on x or y axis
@@ -864,5 +872,69 @@ export class DevTools {
         this.drag.doDrag(false);
         // VectorMath.add(this.cam, this.drag.getFullDragMovement(true));
         this.drag.doDrop();
+    }
+
+    // move entities by dragging them
+    // instead of moving them by position, it might be better to move then incrementally
+    dragDrop(e: MouseEvent) { }
+
+    macros(e: KeyboardEvent) {
+        // watch for keyboard combinations
+        if (e.ctrlKey) {
+            switch (e.key) {
+                // copy
+                case 'c':
+                    if (this.focusedData) this.clipboard = [this.focusedData];
+                    break;
+                // cut
+                case 'x':
+                    if (this.focusedData || this.selectedData.length) {
+                        this.clipboard = [];
+                        this.selectedData.forEach((d) => {
+                            this.clipboard.push(d);
+                        });
+                        this.selectedData = [];
+                        this.focusedData = null;
+                        this.focusedEntity = null;
+                    }
+                    break;
+                // paste
+                case 'v':
+                    if (this.clipboard.length) {
+                        this.clipboard.forEach((d) => {
+                            this.addEntity(d, true, true);
+                        });
+                    }
+                    break;
+                // select all
+                case 'a':
+                    if (this.data.length) {
+                        this.selectedData = this.data;
+                        const [first] = this.data;
+                        this.focusedData = first;
+                    }
+                    break;
+                // undo
+                case 'z':
+                    if (this.history.length) {
+                        // get most recent and remove it
+                        const first = this.history.shift();
+                        this.data = first as EntityData[];
+                        // reload entities
+                        this.reload();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            switch (e.key) {
+                // deselect
+                case 'Escape':
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }
