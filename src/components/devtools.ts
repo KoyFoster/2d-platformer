@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { MouseDrag } from '../utils';
+import { IHashMap, MouseDrag } from '../utils';
 import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
 import { Vector, VectorMath } from './Game/Lib';
@@ -46,26 +46,9 @@ export class DevTools {
 
     subCmd: SubCmd;
 
-    index = 0 as number;
+    fi = null as number | null; // focus index
 
-    focusedData = {
-        type: EntityName.Generic,
-        anchor: { x: 0, y: 0, z: 0 },
-        pos: { x: 0, y: 0, z: 0 },
-        size: { x: 0, y: 0, z: 0 },
-        vel: { x: 0, y: 0, z: 0 },
-        color: '#333333' as string,
-    } as EntityData | null;
-
-    focusedEntity = null as GenericObject | null;
-
-    selectedData = [] as EntityData[];
-
-    selectedEntites = [] as GenericObject[];
-
-    clipboard = [] as EntityData[];
-
-    history = [] as EntityData[][]; // saves deep states of all major changes
+    selected = [] as number[];
 
     origin = { x: 0, y: 0, z: 1 } as Vector;
 
@@ -74,6 +57,10 @@ export class DevTools {
     entities = [] as GenericObject[];
 
     data = [] as EntityData[];
+
+    clipboard = [] as EntityData[];
+
+    history = [] as EntityData[][]; // saves deep states of all major changes
 
     // states
     snapToGridX = 10 as number; // as in only translate on x or y axis
@@ -127,11 +114,7 @@ export class DevTools {
             );
         }
         // copy over settings of first element
-        this.index = 0;
-        const d1 = this.data[0];
-        const ei = this.entities[0];
-        this.focusedData = d1;
-        this.focusedEntity = ei;
+        this.fi = 0;
 
         // SETUP LISTENER
         window.addEventListener('mouseup', (e) => this.onClick(e));
@@ -140,8 +123,9 @@ export class DevTools {
         window.addEventListener('mouseup', (e) => this.onMouseRelease(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('wheel', (e) => this.onScroll(e));
-        window.addEventListener('keyup', (e) => this.subCommands(e));
-        window.addEventListener('keyup', (e) => this.commands(e));
+        // window.addEventListener('keyup', (e) => this.subCommands(e));
+        // window.addEventListener('keyup', (e) => this.commands(e));
+        window.addEventListener('keydown', (e) => this.macros(e));
     }
 
     // destroy and recreate entities from meta data
@@ -151,6 +135,29 @@ export class DevTools {
         this.data.forEach((ent) => {
             this.addEntity(ent, false, false);
         });
+    }
+
+    // focus and selection handling
+    setFocus(i: number) {
+        this.fi = i;
+        // set to start of selected
+        this.selected = this.selected.filter((s) => s !== i);
+        this.selected.unshift(i);
+    }
+
+    setSelection(sel: number[]) {
+        this.selected = sel;
+        // focus first element
+        this.fi = sel.length ? sel[0] : null;
+    }
+
+    addSelected(i: number) {
+        // add to the begining of the list, so that is is focused
+        this.selected.unshift(i);
+    }
+
+    deselect() {
+        this.selected = [];
     }
 
     // Commands
@@ -200,14 +207,14 @@ export class DevTools {
                         if (e.shiftKey && e.altKey) {
                             this.entities = [];
                             this.data = [];
-                            this.index = -1;
+                            this.fi = null;
                             this.save();
                         } else if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
                     } else {
                         this.cmdState = CmdState.Color;
-                        this.inputBuffer = this.focusedData.color;
+                        this.inputBuffer = this.fi !== null ? this.data[this.fi].color : '';
                     }
                     break;
                 case 'enter':
@@ -227,22 +234,34 @@ export class DevTools {
     }
 
     changeEntityType(type: EntityName) {
-        if (this.focusedData.type !== type) {
-            this.focusedData.type = type;
-            this.reloadEntity(this.index);
+        let changes = false;
+        // save current state
+        this.history.unshift(_.cloneDeep(this.data));
+
+        this.data.forEach((d, index) => {
+            if (d.type !== type) {
+                changes = true;
+                d.type = type;
+                this.reloadEntity(index);
+            }
+        });
+
+        if (changes) this.save();
+        // shift if no changes were made
+        else this.history.shift();
+    }
+
+    reloadFocused() {
+        if (this.fi !== null) {
+            this.reloadEntity(this.fi);
             this.save();
         }
     }
 
-    updateCurrentEnity() {
-        this.reloadEntity(this.index);
-        this.save();
-    }
-
     changeEntityColor(color: string) {
-        if (this.focusedData.color !== color) {
-            this.focusedData.color = color;
-            this.reloadEntity(this.index);
+        if (this.fi !== null && this.data[this.fi].color !== color) {
+            this.data[this.fi].color = color;
+            this.reloadEntity(this.fi);
             this.save();
         }
     }
@@ -279,11 +298,11 @@ export class DevTools {
                     switch (key) {
                         case '=':
                         case '+':
-                            this.addEntity(this.data[this.index], true);
-                            this.index = this.entities.length - 1;
-                            this.focusedEntity = this.entities[this.index];
-                            this.focusedData = this.data[this.index];
-                            this.save();
+                            if (this.fi !== null) {
+                                this.addEntity(this.data[this.fi], true);
+                                this.fi = this.entities.length - 1;
+                                this.save();
+                            }
                             break;
                         case '-':
                             this.subEntity();
@@ -382,7 +401,7 @@ export class DevTools {
                 default:
                     break;
             }
-        else {
+        else if (this.fi !== null) {
             this.captureInput(key);
 
             // check input
@@ -405,11 +424,11 @@ export class DevTools {
                                     change = true;
                                     switch (this.subCmd) {
                                         case SubCmd.X:
-                                            this.focusedData.anchor.x = buffer;
+                                            this.data[this.fi].anchor.x = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         case SubCmd.Y:
-                                            this.focusedData.anchor.y = buffer;
+                                            this.data[this.fi].anchor.y = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         default:
@@ -421,12 +440,12 @@ export class DevTools {
                                     switch (this.subCmd) {
                                         case SubCmd.X:
                                             buffer -= buffer % this.snapToGridX;
-                                            this.focusedData.pos.x = buffer;
+                                            this.data[this.fi].pos.x = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         case SubCmd.Y:
                                             buffer -= buffer % this.snapToGridY;
-                                            this.focusedData.pos.y = buffer;
+                                            this.data[this.fi].pos.y = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         default:
@@ -438,12 +457,12 @@ export class DevTools {
                                     switch (this.subCmd) {
                                         case SubCmd.X:
                                             buffer -= buffer % this.snapToGridX;
-                                            this.focusedData.size.x = buffer;
+                                            this.data[this.fi].size.x = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         case SubCmd.Y:
                                             buffer -= buffer % this.snapToGridY;
-                                            this.focusedData.size.y = buffer;
+                                            this.data[this.fi].size.y = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         default:
@@ -454,11 +473,11 @@ export class DevTools {
                                     change = true;
                                     switch (this.subCmd) {
                                         case SubCmd.X:
-                                            this.focusedData.vel.x = buffer;
+                                            this.data[this.fi].vel.x = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         case SubCmd.Y:
-                                            this.focusedData.vel.y = buffer;
+                                            this.data[this.fi].vel.y = buffer;
                                             this.subCmd = SubCmd.NONE;
                                             break;
                                         default:
@@ -472,7 +491,7 @@ export class DevTools {
 
                         // on successful update
                         if (change) {
-                            this.updateCurrentEnity();
+                            this.reloadFocused();
                             this.save();
                         }
                     }
@@ -500,6 +519,7 @@ export class DevTools {
     }
 
     showCommands() {
+        if (this.fi === null) return;
         this.ctx.font = '24px Ariel';
         let yPos = 20;
         this.ctx.fillText(`Commands:`, 650, (yPos += 30));
@@ -507,15 +527,15 @@ export class DevTools {
             case CmdState.NONE:
                 {
                     this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
-                    this.ctx.fillText(`T: Set Entity Type: ${this.focusedData !== null ? this.focusedData.type : 'NA'}`, 700, (yPos += 30));
-                    this.ctx.fillText(`E: Entity Options(${this.index}): ${this.entities.length}|${this.data.length} present`, 700, (yPos += 30));
-                    this.ctx.fillText(`A: set Anchor: [${this.focusedData.anchor.x}, ${this.focusedData.anchor.y}]`, 700, (yPos += 30));
-                    this.ctx.fillText(`P: set Position: [${this.focusedData.pos.x}, ${this.focusedData.pos.y}]`, 700, (yPos += 30));
-                    this.ctx.fillText(`V: set Velocity${this.focusedData.vel ? `: [${this.focusedData.vel.x}, ${this.focusedData.vel.y}]` : ''}`, 700, (yPos += 30));
-                    this.ctx.fillText(`S: set Size: [${this.focusedData.size.x}, ${this.focusedData.size.y}]`, 700, (yPos += 30));
+                    this.ctx.fillText(`T: Set Entity Type: ${this.fi !== null ? this.data[this.fi].type : 'NA'}`, 700, (yPos += 30));
+                    this.ctx.fillText(`E: Entity Options(${this.fi}): ${this.entities.length}|${this.data.length} present`, 700, (yPos += 30));
+                    this.ctx.fillText(`A: set Anchor: [${this.data[this.fi].anchor.x}, ${this.data[this.fi].anchor.y}]`, 700, (yPos += 30));
+                    this.ctx.fillText(`P: set Position: [${this.data[this.fi].pos.x}, ${this.data[this.fi].pos.y}]`, 700, (yPos += 30));
+                    this.ctx.fillText(`V: set Velocity${this.data[this.fi].vel ? `: [${this.data[this.fi].vel.x}, ${this.data[this.fi].vel.y}]` : ''}`, 700, (yPos += 30));
+                    this.ctx.fillText(`S: set Size: [${this.data[this.fi].size.x}, ${this.data[this.fi].size.y}]`, 700, (yPos += 30));
                     const prevStyle = this.ctx.fillStyle;
-                    this.ctx.fillStyle = this.focusedData.color;
-                    this.ctx.fillText(`C: color: ${this.focusedData.color}`, 700, (yPos += 30));
+                    this.ctx.fillStyle = this.data[this.fi].color;
+                    this.ctx.fillText(`C: color: ${this.data[this.fi].color}`, 700, (yPos += 30));
                     this.ctx.fillStyle = prevStyle;
                     this.ctx.fillText(`R: reload`, 700, (yPos += 30));
                     this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
@@ -547,52 +567,52 @@ export class DevTools {
             case CmdState.A:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('P', true, this.focusedData.anchor, (yPos += 30));
+                        this.vectorMsgTemplate('P', true, this.data[this.fi].anchor, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('P', false, this.focusedData.anchor, (yPos += 30));
+                        this.vectorMsgTemplate('P', false, this.data[this.fi].anchor, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.focusedData.anchor.x}, ${this.focusedData.anchor.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.data[this.fi].anchor.x}, ${this.data[this.fi].anchor.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('P', true, this.focusedData.pos, (yPos += 30));
+                        this.vectorMsgTemplate('P', true, this.data[this.fi].pos, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('P', false, this.focusedData.pos, (yPos += 30));
+                        this.vectorMsgTemplate('P', false, this.data[this.fi].pos, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focusedData.pos.x}, ${this.focusedData.pos.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.data[this.fi].pos.x}, ${this.data[this.fi].pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.S:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('S', true, this.focusedData.size, (yPos += 30));
+                        this.vectorMsgTemplate('S', true, this.data[this.fi].size, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('S', false, this.focusedData.size, (yPos += 30));
+                        this.vectorMsgTemplate('S', false, this.data[this.fi].size, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.focusedData.size.x}, ${this.focusedData.size.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.data[this.fi].size.x}, ${this.data[this.fi].size.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.V:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('V', true, this.focusedData.vel, (yPos += 30));
+                        this.vectorMsgTemplate('V', true, this.data[this.fi].vel, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('V', false, this.focusedData.vel, (yPos += 30));
+                        this.vectorMsgTemplate('V', false, this.data[this.fi].vel, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.focusedData.vel.x}, ${this.focusedData.vel.y}]`, 700, (yPos += 30));
+                        this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.data[this.fi].vel.x}, ${this.data[this.fi].vel.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -607,23 +627,24 @@ export class DevTools {
     }
 
     clearProperties() {
+        if (this.fi === null) return;
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
-        this.focusedData.anchor = { x: 0.5, y: 0.5, z: 0.5 };
-        this.focusedData.pos = { x: 0, y: 0, z: 0 };
-        this.focusedData.vel = { x: 0, y: 0, z: 0 };
-        this.focusedData.size = { x: 10, y: 10, z: 0 };
+        this.data[this.fi].anchor = { x: 0.5, y: 0.5, z: 0.5 };
+        this.data[this.fi].pos = { x: 0, y: 0, z: 0 };
+        this.data[this.fi].vel = { x: 0, y: 0, z: 0 };
+        this.data[this.fi].size = { x: 10, y: 10, z: 0 };
     }
 
     preview(delta: number) {
         if (this.ctx !== null) {
-            this.entities.forEach((ent) => {
+            this.entities.forEach((ent, index) => {
                 const prevFilter = this.ctx?.filter;
                 // show focus
-                if (ent === this.focusedEntity) {
+                if (index === this.fi) {
                     this.ctx.filter = 'drop-shadow(4px 4px 0px red)'; // offx, offy, blurRad
                 }
 
@@ -647,9 +668,7 @@ export class DevTools {
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
                 console.warn('collided');
-                this.index = index;
-                this.focusedEntity = ent;
-                this.focusedData = this.data[index];
+                this.fi = index;
                 return false;
             }
             return true;
@@ -689,15 +708,10 @@ export class DevTools {
 
     // automatically takes the current objects settings and translates them to the right
     reloadEntity(i: number) {
-        const result = this.createEntity(_.cloneDeep(this.data[i]));
-        if (this.focusedEntity === this.entities[i]) {
-            this.entities[i] = _.cloneDeep(result.entity);
-            this.focusedEntity = this.entities[i];
-        } else this.entities[i] = _.cloneDeep(result.entity);
-        if (this.focusedData === this.data[i]) {
-            this.data[i] = _.cloneDeep(result.data);
-            this.focusedData = this.data[i];
-        } else this.data[i] = _.cloneDeep(result.data);
+        if (this.fi === null) return;
+        const { entity, data } = this.createEntity(_.cloneDeep(this.data[i]));
+        this.entities[i] = entity;
+        this.data[i] = _.cloneDeep(data);
     }
 
     addEntity(data: EntityData, bump: boolean, addData = true as boolean) {
@@ -709,34 +723,28 @@ export class DevTools {
     }
 
     subEntity() {
+        if (this.fi === null) return;
         if (this.entities.length <= 1) return;
         console.log('subEntity');
         // remove entity as index
-        this.entities = this.entities.filter((ent, index) => index !== this.index);
-        this.data = this.data.filter((data, index) => index !== this.index);
+        this.entities = this.entities.filter((ent, index) => index !== this.fi);
+        this.data = this.data.filter((data, index) => index !== this.fi);
 
-        if (this.index > 0) this.index -= 1;
-        // point to the same data reference
-        this.focusedData = this.data[this.index];
-        this.focusedEntity = this.entities[this.index];
+        if (this.fi > 0) this.fi -= 1;
     }
 
     nextEntity() {
-        if (this.data.length - 1 <= this.index) return;
+        if (this.fi === null) return;
+        if (this.data.length - 1 <= this.fi) return;
         console.log('nextEntity');
-        this.index += 1;
-        this.focusedEntity = this.entities[this.index];
-        // point to the same data reference
-        this.focusedData = this.data[this.index];
+        this.fi += 1;
     }
 
     prevEntity() {
-        if (this.index < 1) return;
+        if (this.fi === null) return;
+        if (this.fi < 1) return;
         console.log('prevEntity');
-        this.index -= 1;
-        this.focusedEntity = this.entities[this.index];
-        // point to the same data reference
-        this.focusedData = this.data[this.index];
+        this.fi -= 1;
     }
 
     save() {
@@ -821,6 +829,7 @@ export class DevTools {
     }
 
     onClick(e: MouseEvent) {
+        if (this.fi === null) return;
         switch (this.cmdState) {
             case CmdState.P:
                 if (e.button === 0) {
@@ -828,7 +837,7 @@ export class DevTools {
                     x -= x % this.snapToGridX;
                     y -= y % this.snapToGridY;
 
-                    this.focusedData.pos = { x, y, z: this.focusedData.pos.z };
+                    this.data[this.fi].pos = { x, y, z: this.data[this.fi].pos.z };
                     this.reload();
                     this.save();
                 }
@@ -838,9 +847,9 @@ export class DevTools {
                     let { x, y } = this.mouse;
                     x -= x % this.snapToGridX;
                     y -= y % this.snapToGridY;
-                    x = Math.abs(this.focusedData.pos.x - x);
-                    y = Math.abs(y - this.focusedData.pos.y);
-                    this.focusedData.size = { x, y, z: this.focusedData.pos.z };
+                    x = Math.abs(this.data[this.fi].pos.x - x);
+                    y = Math.abs(y - this.data[this.fi].pos.y);
+                    this.data[this.fi].size = { x, y, z: this.data[this.fi].pos.z };
                     this.reload();
                     this.save();
                 }
@@ -876,7 +885,7 @@ export class DevTools {
 
     // move entities by dragging them
     // instead of moving them by position, it might be better to move then incrementally
-    dragDrop(e: MouseEvent) { }
+    // dragDrop(e: MouseEvent) { }
 
     macros(e: KeyboardEvent) {
         // watch for keyboard combinations
@@ -884,18 +893,24 @@ export class DevTools {
             switch (e.key) {
                 // copy
                 case 'c':
-                    if (this.focusedData) this.clipboard = [this.focusedData];
+                    if (this.fi !== null) this.clipboard = [this.data[this.fi]];
                     break;
                 // cut
                 case 'x':
-                    if (this.focusedData || this.selectedData.length) {
+                    if (this.fi || this.selected.length) {
                         this.clipboard = [];
-                        this.selectedData.forEach((d) => {
-                            this.clipboard.push(d);
+                        const hash = {} as IHashMap;
+                        this.selected.forEach((s, i) => {
+                            // this.clipboard.push(this.data[s]);
+                            hash[s] = i;
                         });
-                        this.selectedData = [];
-                        this.focusedData = null;
-                        this.focusedEntity = null;
+                        // filter out cut data and entities
+                        // this.data = this.data.filter((d, i) => hash[i] >= 0);
+                        console.log({ fi: this.fi, hash });
+                        // this.entities = this.entities.filter((d, i) => hash[i] !== undefined);
+                        // this.selected = [];
+                        // lose focus
+                        // this.fi = null;
                     }
                     break;
                 // paste
@@ -909,9 +924,8 @@ export class DevTools {
                 // select all
                 case 'a':
                     if (this.data.length) {
-                        this.selectedData = this.data;
-                        const [first] = this.data;
-                        this.focusedData = first;
+                        this.selected = this.data.map((d, i) => i);
+                        this.fi = 0;
                     }
                     break;
                 // undo
