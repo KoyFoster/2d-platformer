@@ -774,7 +774,7 @@ export class DevTools {
                 if (e.button === 0) {
                     let { x, y } = this.getMousePos(e);
                     x -= x % this.snapToGridX;
-                    y -= y % this.snapToGridY;
+                    y -= (y % this.snapToGridY) + this.snapToGridY;
                     this.focusedData.pos = { x, y, z: this.focusedData.pos.z };
                     this.reload();
                     this.save();
