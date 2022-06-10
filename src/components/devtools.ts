@@ -776,9 +776,10 @@ export class DevTools {
         switch (this.cmdState) {
             case CmdState.P:
                 if (e.button === 0) {
-                    let { x, y } = this.getMousePos(e);
+                    let { x, y } = this.mouse;
                     x -= x % this.snapToGridX;
-                    y -= (y % this.snapToGridY) + this.snapToGridY;
+                    y -= y % this.snapToGridY;
+
                     this.focusedData.pos = { x, y, z: this.focusedData.pos.z };
                     this.reload();
                     this.save();
