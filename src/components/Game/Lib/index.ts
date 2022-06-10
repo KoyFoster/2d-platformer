@@ -20,7 +20,7 @@ export class VectorMath {
 }
 
 const __deltacomp1__ = 500;
-export const __size__ = 35;
+export const __size__ = 30;
 export const __speed__ = 400;
 export const __fric__ = 0.9;
 export const __jump__ = 8 * __deltacomp1__ * 0.05;
