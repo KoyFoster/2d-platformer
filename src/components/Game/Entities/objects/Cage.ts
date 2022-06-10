@@ -8,6 +8,11 @@ export class Cage extends GenericObject {
 
     protected lineThickness = 12;
 
+    public constructor(pos: Vector, size = { x: 464, y: 464, z: 1 } as Vector, color = '#eeeeee' as string) {
+        super(pos, size, color);
+        this.solid = true;
+    }
+
     public setVel(vel: Vector) {
         this.type = EntityName.Cage;
         this.vel = vel;

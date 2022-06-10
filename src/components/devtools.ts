@@ -1,5 +1,5 @@
 import { MouseDrag } from '../utils';
-import { EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
+import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
 import { Vector, VectorMath } from './Game/Lib';
 
@@ -247,6 +247,9 @@ export class DevTools {
                     break;
                 case CmdState.T:
                     switch (key) {
+                        case 'c':
+                            this.changeEntityType(EntityName.Cage);
+                            break;
                         case 'p':
                             this.changeEntityType(EntityName.Platform);
                             break;
@@ -490,7 +493,7 @@ export class DevTools {
             case CmdState.T:
                 switch (this.subCmd) {
                     default:
-                        this.ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M)`, 700, (yPos += 30));
+                        this.ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M) Cage(C)`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -619,6 +622,10 @@ export class DevTools {
     createEntity(data: EntityData, useDefaults = false as boolean) {
         let buffer;
         switch (data.type) {
+            case EntityName.Cage:
+                if (!useDefaults) buffer = new Cage(data.pos, data.size, data.color);
+                else buffer = new Cage(data.pos);
+                break;
             case EntityName.HurtBox:
                 if (!useDefaults) buffer = new HurtBox(data.pos, data.size, data.color);
                 else buffer = new HurtBox(data.pos);
