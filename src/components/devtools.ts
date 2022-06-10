@@ -68,9 +68,9 @@ export class DevTools {
     index = 0 as number;
 
     // states
-    snapToGridX = 20 as number; // as in only translate on x or y axis
+    snapToGridX = 10 as number; // as in only translate on x or y axis
 
-    snapToGridY = 20 as number; // as in only translate on x or y axis
+    snapToGridY = 10 as number; // as in only translate on x or y axis
 
     drag = new MouseDrag() as MouseDrag;
 
@@ -552,10 +552,10 @@ export class DevTools {
             case CmdState.P:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('P', true, this.focusedData.size, (yPos += 30));
+                        this.vectorMsgTemplate('P', true, this.focusedData.pos, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('P', false, this.focusedData.size, (yPos += 30));
+                        this.vectorMsgTemplate('P', false, this.focusedData.pos, (yPos += 30));
                         break;
                     default:
                         this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focusedData.pos.x}, ${this.focusedData.pos.y}]`, 700, (yPos += 30));

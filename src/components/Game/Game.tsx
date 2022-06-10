@@ -1,7 +1,7 @@
-import { Entity, Player, Platform, HurtBox, Tractor, EntityData, Cage } from './Entities';
+import { Entity, Player, Platform, HurtBox, Tractor, EntityData, Cage, EntityName } from './Entities';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
-import seq0 from './Maps/sequences/seq_1.json';
+import seq0 from './Maps/sequences/seq_dev.json';
 import { Sequence } from './Maps/sequences';
 import { Vector } from './Lib';
 
@@ -20,7 +20,7 @@ export default class Game {
 
     private camera = { ...this.origin } as Vector;
 
-    private player = new Player({ x: 0, y: 24, z: 0 });
+    private player = new Player({ x: 0, y: 120, z: 0 });
 
     private keys = {
         left: false,
@@ -48,25 +48,25 @@ export default class Game {
         ent.forEach((e: EntityData) => {
             let pl = null;
             switch (e.type) {
-                case 'cage':
+                case EntityName.Cage:
                     pl = new Cage(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
                     pl.setVel(e.vel);
-                    this.foreEntities.push(pl);
+                    this.backEntities.push(pl);
                     break;
-                case 'platform':
+                case EntityName.Platform:
                     pl = new Platform(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
                     pl.setVel(e.vel);
                     this.foreEntities.push(pl);
                     break;
-                case 'tractor':
+                case EntityName.Tractor:
                     pl = new Tractor(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
                     pl.setVel(e.vel);
                     this.foreEntities.push(pl);
                     break;
-                case 'motion':
+                case EntityName.Motion:
                     pl = new HurtBoxMotion(e.pos, e.size, e.color);
                     pl.setAnchor(e.anchor);
                     pl.setVel(e.vel);
@@ -84,9 +84,10 @@ export default class Game {
 
     public loadSequence(sequence: Sequence) {
         // Set deallocation timer
-        const { lifetime, positions, entities } = sequence;
+        const { lifetime, position, entities } = sequence;
         const interval = setInterval(() => {
             this.backEntities = [];
+            this.foreEntities = [];
             clearInterval(interval);
         }, lifetime);
 
@@ -95,7 +96,7 @@ export default class Game {
 
     debug() {
         if (this.ctx === null) return;
-        this.ctx.fillText(`Entities:${this.backEntities.length}`, 33, 110);
+        this.ctx.fillText(`Entities:${this.backEntities.length + this.foreEntities.length}`, 33, 110);
     }
 
     // Game Logic
