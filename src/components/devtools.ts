@@ -48,6 +48,8 @@ export class DevTools {
 
     selected = [] as number[];
 
+    selectedHashMap = {} as IHashMap;
+
     origin = { x: 0, y: 0, z: 1 } as Vector;
 
     cam = { x: 0, y: 0, z: 1 } as Vector;
@@ -146,8 +148,14 @@ export class DevTools {
 
     // specify an already potentially selected element for focus
     setFocus(i: number) {
+        // remove from hashmap
+        if (this.selectedHashMap[i]) {
+            this.selected = this.selected.filter((s) => s !== i);
+            delete this.selectedHashMap[i];
+        } else {
+            this.selectedHashMap[i] = 1;
+        }
         // set to start of selected
-        this.selected = this.selected.filter((s) => s !== i);
         this.selected.unshift(i);
     }
 
@@ -165,19 +173,34 @@ export class DevTools {
     // set group selection
     setSelection(sel: number[]) {
         this.selected = sel;
+        // update hashmap
+        this.selectedHashMap = {};
+        this.selected.forEach((s) => {
+            this.selectedHashMap[s] = 1;
+        });
     }
 
     addSelected(i: number) {
         // add to the begining of the list, so that is is focused
         this.selected.unshift(i);
+        this.selectedHashMap[i] = 1;
     }
 
     selectAll() {
-        this.selected = this.data.map((d, i) => i);
+        this.selectedHashMap = {};
+        this.selected = this.data.map((d, i) => {
+            this.selectedHashMap[i] = 1;
+            return i;
+        });
     }
 
     deselect() {
         this.selected = [];
+        this.selectedHashMap = {};
+    }
+
+    isSelected(i: number): boolean {
+        return !!this.selectedHashMap[i];
     }
 
     // Commands
@@ -660,6 +683,8 @@ export class DevTools {
                 // show focus
                 if (this.focused && i === this.focused.i) {
                     this.ctx.filter = 'drop-shadow(4px 4px 0px red)'; // offx, offy, blurRad
+                } else if (this.isSelected(i)) {
+                    this.ctx.filter = 'drop-shadow(4px 4px 0px green)'; // offx, offy, blurRad
                 }
 
                 if (this.pause) {
@@ -683,7 +708,8 @@ export class DevTools {
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
                 console.warn('collided');
-                this.setSelected(index);
+                if (e.ctrlKey) this.addSelected(index);
+                else this.setSelected(index);
                 return false;
             }
             return true;
