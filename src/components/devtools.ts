@@ -786,23 +786,31 @@ export class DevTools {
         if (!this.showGrid) return;
         this.ctx.beginPath();
         const lw = this.ctx.lineWidth;
-        this.ctx.lineWidth = 0.25;
-        const h = this.ctx.canvas.height * 0.5 - this.snapToGridY * 0.5;
-        const w = this.ctx.canvas.width * 0.5 - this.snapToGridX * 0.5;
-        for (let i = this.snapToGridX - this.origin.x; i < w; i += this.snapToGridX) {
+        this.ctx.lineWidth = 1;
+        const scale = this.cam.z;
+        const xGap = this.snapToGridX * 2;
+        const yGap = this.snapToGridY * 2;
+        const h = ((this.ctx.canvas.height - this.snapToGridY) * 0.5) / scale;
+        const w = ((this.ctx.canvas.width - this.snapToGridX) * 0.5) / scale;
+        let x = (xGap - this.origin.y) / scale;
+        let y = (yGap - this.origin.x) / scale;
+        x -= x % xGap;
+        y -= y % yGap;
+
+        for (let i = y; i < w; i += xGap) {
             // v
             // draw every other line
-            this.ctx.moveTo(i, this.snapToGridX * 2 - this.origin.y);
+            this.ctx.moveTo(i, x);
             this.ctx.lineTo(i, h);
         }
-        for (let i = this.snapToGridY - this.origin.y; i < h; i += this.snapToGridY) {
+        for (let i = x; i < h; i += yGap) {
             // v
             // draw every other line
-            this.ctx.moveTo(this.snapToGridY * 2 - this.origin.x, i);
+            this.ctx.moveTo(y, i);
             this.ctx.lineTo(w, i);
         }
         // d
-        this.ctx.strokeStyle = '#f0f0f0';
+        this.ctx.strokeStyle = '#444444';
         this.ctx.closePath();
         this.ctx.stroke();
         this.ctx.lineWidth = lw;
@@ -845,6 +853,8 @@ export class DevTools {
     onScroll(e: WheelEvent) {
         // Zoom in and Out
         this.cam.z -= e.deltaY * 0.001;
+        // prevent zooming out too much
+        if (this.cam.z <= 0.1) this.cam.z = 0.1;
     }
 
     onClick(e: MouseEvent) {
