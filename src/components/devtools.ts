@@ -741,17 +741,19 @@ export class DevTools {
     }
 
     nextEntity() {
-        if (this.focused === null) return;
-        if (this.data.length - 1 <= this.focused.i) return;
-        console.log('nextEntity');
+        if (this.focused === null || this.focused.s) {
+            this.setSelected(0);
+            return;
+        }
         this.setSelected(this.focused.i + 1);
     }
 
     prevEntity() {
-        if (this.focused === null) return;
-        if (this.focused.i < 1) return;
-        console.log('prevEntity');
-        if (this.focused.i > 0) this.setSelected(this.focused.i - 1);
+        if (this.focused === null || this.focused.i === 0) {
+            this.setSelected(this.data.length - 1);
+            return;
+        }
+        this.setSelected(this.focused.i - 1);
     }
 
     save() {
