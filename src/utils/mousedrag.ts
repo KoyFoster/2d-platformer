@@ -1,7 +1,7 @@
 import { Vector } from '../components/Game/Lib';
 
 export class MouseDrag {
-    drag = false as boolean;
+    protected drag = false as boolean;
 
     pos = null as Vector | null;
 
@@ -9,10 +9,16 @@ export class MouseDrag {
 
     startingPos = null as Vector | null;
 
-    onMove(e: MouseEvent, parent: HTMLCanvasElement) {
+    get isDragging() {
+        if (this.pos === null || this.prevPos === null) return false;
+        return this.pos.x !== this.prevPos.x || this.pos.y !== this.prevPos.y;
+    }
+
+    onMove(e: MouseEvent, parent: HTMLCanvasElement, coord?: Vector) {
+        const point = coord || { x: e.offsetX, y: e.offsetY, z: 0 };
         if (this.drag && parent === e.target) {
             this.prevPos = this.pos;
-            this.pos = { x: e.offsetX, y: e.offsetY, z: 1 };
+            this.pos = { x: point.x, y: point.y, z: 1 };
             if (this.startingPos === null) this.startingPos = this.pos;
         }
     }
