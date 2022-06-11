@@ -196,9 +196,9 @@ export class DevTools {
     }
 
     deselect() {
-        console.log('-deselect-');
         this.selected = [];
         this.selectedHashMap = {};
+        console.log('-deselect-', this.data, this.entities);
     }
 
     isSelected(i: number): boolean {
@@ -706,7 +706,6 @@ export class DevTools {
         let selected = false;
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
-                console.warn('collided');
                 if (e.ctrlKey) this.addSelected(index);
                 else this.setSelected(index);
                 selected = true;
@@ -965,6 +964,23 @@ export class DevTools {
     // instead of moving them by position, it might be better to move then incrementally
     // dragDrop(e: MouseEvent) { }
 
+    deleteSelected() {
+        this.data = this.data.filter((_d, i) => !this.selectedHashMap[i]);
+        this.entities = this.entities.filter((_e, i) => !this.selectedHashMap[i]);
+        console.log(this.data, this.entities);
+        // lose focus
+        this.deselect();
+    }
+
+    addSelectedToClipboard() {
+        this.clipboard = [];
+        this.selected.forEach((s, i) => {
+            this.clipboard.push(this.data[s]);
+        });
+        // filter out cut data and entities
+        console.log('clipboard:', this.clipboard);
+    }
+
     macros(e: KeyboardEvent) {
         // watch for keyboard combinations
         if (e.ctrlKey) {
@@ -976,20 +992,8 @@ export class DevTools {
                 // cut
                 case 'x':
                     if (this.selected.length) {
-                        this.clipboard = [];
-                        const hash = {} as IHashMap;
-                        this.selected.forEach((s, i) => {
-                            this.clipboard.push(this.data[s]);
-                            hash[s] = i;
-                        });
-                        // filter out cut data and entities
-                        console.log('hash:', hash);
-                        console.log('clipboard:', this.clipboard);
-                        this.data = this.data.filter((_d, i) => hash[i] === undefined);
-                        this.entities = this.entities.filter((_e, i) => hash[i] === undefined);
-                        console.log(this.data, this.entities);
-                        // lose focus
-                        this.deselect();
+                        this.addSelectedToClipboard();
+                        this.deleteSelected();
                     }
                     break;
                 // paste
@@ -1036,6 +1040,22 @@ export class DevTools {
                 // deselect
                 case 'Escape':
                     this.deselect();
+                    break;
+                // cut
+                case 'Delete':
+                    if (this.selected.length) {
+                        const hash = {} as IHashMap;
+                        this.selected.forEach((s, i) => {
+                            hash[s] = i;
+                        });
+                        // filter out cut data and entities
+                        console.log('hash:', hash);
+                        this.data = this.data.filter((_d, i) => hash[i] === undefined);
+                        this.entities = this.entities.filter((_e, i) => hash[i] === undefined);
+                        console.log(this.data, this.entities);
+                        // lose focus
+                        this.deselect();
+                    }
                     break;
                 case 'Tab':
                     e.preventDefault();
