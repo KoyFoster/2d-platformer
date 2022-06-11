@@ -131,7 +131,7 @@ export class DevTools {
 
         window.addEventListener('wheel', (e) => this.onScroll(e));
         // window.addEventListener('keyup', (e) => this.subCommands(e));
-        // window.addEventListener('keyup', (e) => this.commands(e));
+        window.addEventListener('keyup', (e) => this.commands(e));
         window.addEventListener('keydown', (e) => this.macros(e));
         window.addEventListener('keydown', (e) => {
             this.entDrag.setHorizDrag = e.shiftKey;
