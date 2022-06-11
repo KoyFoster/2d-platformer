@@ -115,8 +115,6 @@ export class DevTools {
                 true
             );
         }
-        // copy over settings of first element
-        this.selected = [0];
 
         // SETUP LISTENER
         window.addEventListener('mouseup', (e) => this.onClick(e));
@@ -163,6 +161,8 @@ export class DevTools {
     setSelected(i: number) {
         // set to start of selected
         this.selected = [i];
+        this.selectedHashMap = {};
+        this.selectedHashMap[i] = 1;
     }
 
     get focused(): { i: number; d: EntityData; e: GenericObject } | null {
@@ -187,14 +187,16 @@ export class DevTools {
     }
 
     selectAll() {
+        console.log('-selectAll-');
         this.selectedHashMap = {};
-        this.selected = this.data.map((d, i) => {
+        this.selected = this.data.map((_d, i) => {
             this.selectedHashMap[i] = 1;
             return i;
         });
     }
 
     deselect() {
+        console.log('-deselect-');
         this.selected = [];
         this.selectedHashMap = {};
     }
@@ -247,11 +249,7 @@ export class DevTools {
                     break;
                 case 'c':
                     if (e.shiftKey) {
-                        if (e.shiftKey && e.altKey) {
-                            this.entities = [];
-                            this.data = [];
-                            this.setSelection([]);
-                        } else if (this.cmdState === CmdState.NONE) {
+                        if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
                     } else {
@@ -705,15 +703,18 @@ export class DevTools {
         if (this.entDrag.isDragging) return;
 
         // check for mouse collision with existing entities
+        let selected = false;
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
                 console.warn('collided');
                 if (e.ctrlKey) this.addSelected(index);
                 else this.setSelected(index);
+                selected = true;
                 return false;
             }
             return true;
         });
+        if (!selected) this.deselect();
     }
 
     createEntity(data: EntityData, useDefaults = false as boolean) {
@@ -768,8 +769,8 @@ export class DevTools {
         console.log('subEntity');
         // remove entity as index
         if (this.focused === null) return;
-        this.entities = this.entities.filter((ent, index) => index !== this.focused.i);
-        this.data = this.data.filter((data, index) => index !== this.focused.i);
+        this.entities = this.entities.filter((_ent, index) => index !== this.focused.i);
+        this.data = this.data.filter((_data, index) => index !== this.focused.i);
 
         if (this.focused.i > 0) this.setSelected(this.focused.i - 1);
     }
@@ -794,6 +795,7 @@ export class DevTools {
     }
 
     clearAll() {
+        console.log('-clearAll-');
         this.entities = [];
         this.data = [];
         this.selected = [];
@@ -983,10 +985,9 @@ export class DevTools {
                         // filter out cut data and entities
                         console.log('hash:', hash);
                         console.log('clipboard:', this.clipboard);
-                        this.data = this.data.filter((d, i) => hash[i] === undefined);
-                        this.entities = this.entities.filter((e, i) => hash[i] === undefined);
+                        this.data = this.data.filter((_d, i) => hash[i] === undefined);
+                        this.entities = this.entities.filter((_e, i) => hash[i] === undefined);
                         console.log(this.data, this.entities);
-                        this.selected = [];
                         // lose focus
                         this.deselect();
                     }
