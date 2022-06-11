@@ -144,11 +144,17 @@ export class DevTools {
         });
     }
 
-    // focus and selection handling
+    // specify an already potentially selected element for focus
     setFocus(i: number) {
         // set to start of selected
         this.selected = this.selected.filter((s) => s !== i);
         this.selected.unshift(i);
+    }
+
+    // set single selection
+    setSelected(i: number) {
+        // set to start of selected
+        this.selected = [i];
     }
 
     get focused(): { i: number; d: EntityData; e: GenericObject } | null {
@@ -156,6 +162,7 @@ export class DevTools {
         return { i: this.selected[0], d: this.data[this.selected[0]], e: this.entities[this.selected[0]] };
     }
 
+    // set group selection
     setSelection(sel: number[]) {
         this.selected = sel;
     }
@@ -676,7 +683,7 @@ export class DevTools {
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
                 console.warn('collided');
-                this.setFocus(index);
+                this.setSelected(index);
                 return false;
             }
             return true;
@@ -738,21 +745,21 @@ export class DevTools {
         this.entities = this.entities.filter((ent, index) => index !== this.focused.i);
         this.data = this.data.filter((data, index) => index !== this.focused.i);
 
-        if (this.focused.i > 0) this.setFocus(this.focused.i - 1);
+        if (this.focused.i > 0) this.setSelected(this.focused.i - 1);
     }
 
     nextEntity() {
         if (this.focused === null) return;
         if (this.data.length - 1 <= this.focused.i) return;
         console.log('nextEntity');
-        this.setFocus(this.focused.i + 1);
+        this.setSelected(this.focused.i + 1);
     }
 
     prevEntity() {
         if (this.focused === null) return;
         if (this.focused.i < 1) return;
         console.log('prevEntity');
-        if (this.focused.i > 0) this.setFocus(this.focused.i - 1);
+        if (this.focused.i > 0) this.setSelected(this.focused.i - 1);
     }
 
     save() {
@@ -944,16 +951,18 @@ export class DevTools {
                         this.clipboard = [];
                         const hash = {} as IHashMap;
                         this.selected.forEach((s, i) => {
-                            // this.clipboard.push(this.data[s]);
+                            this.clipboard.push(this.data[s]);
                             hash[s] = i;
                         });
                         // filter out cut data and entities
-                        // this.data = this.data.filter((d, i) => hash[i] >= 0);
                         console.log('hash:', hash);
-                        // this.entities = this.entities.filter((d, i) => hash[i] !== undefined);
-                        // this.selected = [];
+                        console.log('clipboard:', this.clipboard);
+                        this.data = this.data.filter((d, i) => hash[i] === undefined);
+                        this.entities = this.entities.filter((e, i) => hash[i] === undefined);
+                        console.log(this.data, this.entities);
+                        this.selected = [];
                         // lose focus
-                        // this.setSelection([])
+                        this.deselect();
                     }
                     break;
                 // paste
