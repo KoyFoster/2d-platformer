@@ -920,12 +920,10 @@ export class DevTools {
 
     onMouseRelease(e: MouseEvent) {
         if (e.button === 0) {
-            console.log('left drag release');
             this.entDrag.doDrag(false);
             this.entDrag.doDrop();
         }
         if (e.button === 1) {
-            console.log('middle drag release');
             this.camDrag.doDrag(false);
             this.camDrag.doDrop();
         }
@@ -934,7 +932,6 @@ export class DevTools {
     deleteSelected() {
         this.data = this.data.filter((_d, i) => !this.selectedHashMap[i]);
         this.entities = this.entities.filter((_e, i) => !this.selectedHashMap[i]);
-        console.log(this.data, this.entities);
         // lose focus
         this.deselect();
     }
@@ -946,6 +943,16 @@ export class DevTools {
         });
         // filter out cut data and entities
         console.log('clipboard:', this.clipboard);
+    }
+
+    undo() {
+        if (this.history.length) {
+            // get most recent and remove it
+            const first = this.history.shift();
+            this.data = first as EntityData[];
+            // reload entities
+            this.reload();
+        }
     }
 
     macros(e: KeyboardEvent) {
@@ -977,13 +984,7 @@ export class DevTools {
                     break;
                 // undo
                 case 'z':
-                    if (this.history.length) {
-                        // get most recent and remove it
-                        const first = this.history.shift();
-                        this.data = first as EntityData[];
-                        // reload entities
-                        this.reload();
-                    }
+                    this.undo();
                     break;
                 case 's':
                     if (e.ctrlKey) {
@@ -1011,17 +1012,7 @@ export class DevTools {
                 // cut
                 case 'Delete':
                     if (this.selected.length) {
-                        const hash = {} as IHashMap;
-                        this.selected.forEach((s, i) => {
-                            hash[s] = i;
-                        });
-                        // filter out cut data and entities
-                        console.log('hash:', hash);
-                        this.data = this.data.filter((_d, i) => hash[i] === undefined);
-                        this.entities = this.entities.filter((_e, i) => hash[i] === undefined);
-                        console.log(this.data, this.entities);
-                        // lose focus
-                        this.deselect();
+                        this.deleteSelected();
                     }
                     break;
                 case 'Tab':
