@@ -890,13 +890,17 @@ export class DevTools {
         // calculate mouse positions relativity
         this.mouse = { x: (x * 1) / this.cam.z, y: (y * 1) / this.cam.z, z: 0 };
 
-        this.camDrag.onMove(e, this.canvas);
+        this.camDrag.onMove(e, this.canvas, { x: e.ctrlKey ? 0 : e.offsetX, y: e.shiftKey ? 0 : e.offsetY, z: 0 });
         VectorMath.add(this.cam, this.camDrag.getDragMovement());
 
         // if move is currently colliding the focused element and in dragging state
         if (this.focused) {
             if (this.focused.e.checkCollisionV(this.mouse)) {
-                this.entDrag.onMove(e, this.canvas, this.applySnap(this.mouse));
+                const point = { ...this.applySnap(this.mouse) };
+                if (e.shiftKey) point.y = 0;
+                else if (e.ctrlKey) point.x = 0;
+
+                this.entDrag.onMove(e, this.canvas, this.applySnap(point));
                 VectorMath.add(this.focused.d.pos, this.entDrag.getDragMovement());
                 this.focused.e.setPos({ ...this.focused.d.pos });
             }
@@ -979,6 +983,7 @@ export class DevTools {
                         e.preventDefault();
 
                         this.saveToConsole();
+                        this.save();
                     }
                     break;
                 case 'd':
