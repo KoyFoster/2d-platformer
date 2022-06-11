@@ -9,6 +9,30 @@ export class MouseDrag {
 
     startingPos = null as Vector | null;
 
+    private vert = false;
+
+    private horiz = false;
+
+    private diagClock = false;
+
+    private diagCount = false;
+
+    get isVertDrag() {
+        return this.vert;
+    }
+
+    set setVertDrag(vert: boolean) {
+        this.vert = vert;
+    }
+
+    get isHorizDrag() {
+        return this.horiz;
+    }
+
+    set setHorizDrag(horiz: boolean) {
+        this.horiz = horiz;
+    }
+
     get isDragging() {
         if (this.pos === null || this.prevPos === null) return false;
         return this.pos.x !== this.prevPos.x || this.pos.y !== this.prevPos.y;
@@ -18,7 +42,7 @@ export class MouseDrag {
         const point = coord || { x: e.offsetX, y: e.offsetY, z: 0 };
         if (this.drag && parent === e.target) {
             this.prevPos = this.pos;
-            this.pos = { x: point.x, y: point.y, z: 1 };
+            this.pos = { x: this.vert ? 0 : point.x, y: this.horiz ? 0 : point.y, z: 1 };
             if (this.startingPos === null) this.startingPos = this.pos;
         }
     }

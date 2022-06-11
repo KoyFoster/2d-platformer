@@ -133,6 +133,14 @@ export class DevTools {
         // window.addEventListener('keyup', (e) => this.subCommands(e));
         // window.addEventListener('keyup', (e) => this.commands(e));
         window.addEventListener('keydown', (e) => this.macros(e));
+        window.addEventListener('keydown', (e) => {
+            this.entDrag.setHorizDrag = e.shiftKey;
+            this.entDrag.setVertDrag = e.ctrlKey;
+        });
+        window.addEventListener('keyup', (e) => {
+            this.entDrag.setHorizDrag = false;
+            this.entDrag.setVertDrag = false;
+        });
     }
 
     // destroy and recreate entities from meta data
@@ -229,9 +237,6 @@ export class DevTools {
                 case 't':
                     this.cmdState = CmdState.T;
                     break;
-                case 'e':
-                    this.cmdState = CmdState.E;
-                    break;
                 case 'a':
                     this.cmdState = CmdState.A;
                     break;
@@ -323,25 +328,6 @@ export class DevTools {
                             break;
                         case 'm':
                             this.changeEntityType(EntityName.Motion);
-                            break;
-                        case 'escape':
-                            this.cmdState = CmdState.NONE;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case CmdState.E:
-                    switch (key) {
-                        case '=':
-                        case '+':
-                            if (this.focused !== null) {
-                                this.addEntity(this.focused.d, true);
-                            }
-                            break;
-                        case '-':
-                            this.subEntity();
-
                             break;
                         case 'escape':
                             this.cmdState = CmdState.NONE;
@@ -562,7 +548,6 @@ export class DevTools {
 
                 if (this.focused !== null) {
                     this.ctx.fillText(`T: Set Entity Type: ${this.focused.d.type}`, 700, (yPos += 30));
-                    this.ctx.fillText(`E: Entity Options(${this.focused.i}): ${this.entities.length}|${this.data.length} present`, 700, (yPos += 30));
                     this.ctx.fillText(`A: set Anchor: [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
                     this.ctx.fillText(`P: set Position: [${this.focused.d.pos.x}, ${this.focused.d.pos.y}]`, 700, (yPos += 30));
                     this.ctx.fillText(`V: set Velocity${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, 700, (yPos += 30));
@@ -583,14 +568,6 @@ export class DevTools {
                         break;
                 }
                 break;
-            case CmdState.E:
-                switch (this.subCmd) {
-                    default:
-                        this.ctx.fillText(`E: add(+) sub(-)`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-
             case CmdState.Color:
                 {
                     const prevStyle = this.ctx.fillStyle;
@@ -602,52 +579,52 @@ export class DevTools {
             case CmdState.A:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('P', true, this.focused.d.anchor, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('P', true, this.focused.d.anchor, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('P', false, this.focused.d.anchor, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('P', false, this.focused.d.anchor, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
+                        if (this.focused) this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.P:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('P', true, this.focused.d.pos, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('P', true, this.focused.d.pos, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('P', false, this.focused.d.pos, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('P', false, this.focused.d.pos, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}]`, 700, (yPos += 30));
+                        if (this.focused) this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.S:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('S', true, this.focused.d.size, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('S', true, this.focused.d.size, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('S', false, this.focused.d.size, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('S', false, this.focused.d.size, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
+                        if (this.focused) this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
             case CmdState.V:
                 switch (this.subCmd) {
                     case SubCmd.X:
-                        this.vectorMsgTemplate('V', true, this.focused.d.vel, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('V', true, this.focused.d.vel, (yPos += 30));
                         break;
                     case SubCmd.Y:
-                        this.vectorMsgTemplate('V', false, this.focused.d.vel, (yPos += 30));
+                        if (this.focused) this.vectorMsgTemplate('V', false, this.focused.d.vel, (yPos += 30));
                         break;
                     default:
-                        this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]`, 700, (yPos += 30));
+                        if (this.focused) this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
@@ -763,17 +740,6 @@ export class DevTools {
         this.entities.push(result.entity);
     }
 
-    subEntity() {
-        if (this.entities.length <= 1) return;
-        console.log('subEntity');
-        // remove entity as index
-        if (this.focused === null) return;
-        this.entities = this.entities.filter((_ent, index) => index !== this.focused.i);
-        this.data = this.data.filter((_data, index) => index !== this.focused.i);
-
-        if (this.focused.i > 0) this.setSelected(this.focused.i - 1);
-    }
-
     nextEntity() {
         if (this.focused === null) return;
         if (this.data.length - 1 <= this.focused.i) return;
@@ -823,12 +789,14 @@ export class DevTools {
         const w = this.ctx.canvas.width * 0.5 - this.snapToGridX * 0.5;
         for (let i = this.snapToGridX - this.origin.x; i < w; i += this.snapToGridX) {
             // v
-            this.ctx.moveTo(i, this.snapToGridX - this.origin.y);
+            // draw every other line
+            this.ctx.moveTo(i, this.snapToGridX * 2 - this.origin.y);
             this.ctx.lineTo(i, h);
         }
         for (let i = this.snapToGridY - this.origin.y; i < h; i += this.snapToGridY) {
             // v
-            this.ctx.moveTo(this.snapToGridY - this.origin.x, i);
+            // draw every other line
+            this.ctx.moveTo(this.snapToGridY * 2 - this.origin.x, i);
             this.ctx.lineTo(w, i);
         }
         // d
@@ -859,10 +827,11 @@ export class DevTools {
         this.ctx.fillStyle = 'gold';
         this.ctx.fillRect(-3, -3, 6, 6);
 
-        // debug mouse
-        // Draw Origin
+        // Draw Mouse
         this.ctx.fillStyle = 'red';
-        this.ctx.fillRect(this.mouse.x - 2, this.mouse.y - 2, 4, 4);
+        if (this.entDrag.isVertDrag) this.ctx.fillRect(this.mouse.x - 1, this.mouse.y - 80, 2, 160);
+        else if (this.entDrag.isHorizDrag) this.ctx.fillRect(this.mouse.x - 80, this.mouse.y - 1, 160, 2);
+        else this.ctx.fillRect(this.mouse.x - 2, this.mouse.y - 2, 4, 4);
 
         // Undo Camera before UI
         this.ctx.translate(-this.cam.x, -this.cam.y);
@@ -923,16 +892,16 @@ export class DevTools {
         const y = e.offsetY - this.cam.y;
         // calculate mouse positions relativity
         this.mouse = { x: (x * 1) / this.cam.z, y: (y * 1) / this.cam.z, z: 0 };
+        this.camDrag.setHorizDrag = e.shiftKey;
+        this.camDrag.setVertDrag = e.ctrlKey;
 
-        this.camDrag.onMove(e, this.canvas, { x: e.ctrlKey ? 0 : e.offsetX, y: e.shiftKey ? 0 : e.offsetY, z: 0 });
+        this.camDrag.onMove(e, this.canvas, { x: e.offsetX, y: e.offsetY, z: 0 });
         VectorMath.add(this.cam, this.camDrag.getDragMovement());
 
         // if move is currently colliding the focused element and in dragging state
         if (this.focused) {
             if (this.focused.e.checkCollisionV(this.mouse)) {
                 const point = { ...this.applySnap(this.mouse) };
-                if (e.shiftKey) point.y = 0;
-                else if (e.ctrlKey) point.x = 0;
 
                 this.entDrag.onMove(e, this.canvas, this.applySnap(point));
                 VectorMath.add(this.focused.d.pos, this.entDrag.getDragMovement());
@@ -959,10 +928,6 @@ export class DevTools {
             this.camDrag.doDrop();
         }
     }
-
-    // move entities by dragging them
-    // instead of moving them by position, it might be better to move then incrementally
-    // dragDrop(e: MouseEvent) { }
 
     deleteSelected() {
         this.data = this.data.filter((_d, i) => !this.selectedHashMap[i]);
