@@ -291,7 +291,8 @@ export class DevTools {
         if (this.selected.length) {
             this.selected.forEach((s) => {
                 const d = this.data[s] as EntityData;
-                d[key] = value;
+                if (typeof value === 'object') d[key] = { ...value };
+                else d[key] = value;
             });
 
             this.reload();
@@ -795,10 +796,10 @@ export class DevTools {
                     this.appendToHistory();
                     this.addNewEntity(EntityName.Platform, this.applySnap(this.mouse));
                     break;
-                case '$':
-                    this.appendToHistory();
-                    this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
-                    break;
+                // case '$':
+                //     this.appendToHistory();
+                //     this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
+                //     break;
                 case ')':
                     this.appendToHistory();
                     this.addNewEntity(EntityName.Cage, this.applySnap(this.mouse));
