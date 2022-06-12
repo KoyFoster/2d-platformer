@@ -12,8 +12,10 @@ export class HurtBox extends GenericObject {
     }
 
     public affect(player: Player, delta: number) {
-        player.hurt(1, 0, HurtType.constant);
-        player.hurt(50 * delta, 1, HurtType.tick);
+        if (this.checkCollision(player)) {
+            player.hurt(1, 0, HurtType.constant);
+            player.hurt(50 * delta, 1, HurtType.tick);
+        }
         return true;
     }
 

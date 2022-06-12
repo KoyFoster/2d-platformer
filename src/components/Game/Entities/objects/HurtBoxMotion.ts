@@ -12,7 +12,7 @@ export class HurtBoxMotion extends GenericObject {
     }
 
     public affect(player: Player, delta: number) {
-        if (player.getVelocity.x !== 0 || player.getVelocity.y !== 0) {
+        if (this.checkCollision(player) && (player.getVelocity.x !== 0 || player.getVelocity.y !== 0)) {
             console.log(player.getVelocity);
             player.hurt(1, 0, HurtType.constant);
             player.hurt(50 * delta, 1, HurtType.tick);

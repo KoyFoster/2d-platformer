@@ -1,7 +1,7 @@
-import { Entity, Player, Platform, HurtBox, Tractor, EntityData, Cage, EntityName } from './Entities';
+import { GenericObject, Player, Platform, HurtBox, Tractor, EntityData, Cage, EntityName } from './Entities';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
-import seq0 from './Maps/sequences/seq_dev.json';
+import seq0 from './Maps/sequences/seq_2.json';
 import { Sequence } from './Maps/sequences';
 import { Vector } from './Lib';
 
@@ -10,11 +10,11 @@ export default class Game {
 
     private ctx = this.canvas.getContext('2d');
 
-    private backEntities = [] as Entity[];
+    private backEntities = [] as GenericObject[];
 
-    private foreEntities = [] as Entity[];
+    private foreEntities = [] as GenericObject[];
 
-    private frame = [] as Entity[];
+    private frame = [] as GenericObject[];
 
     private origin = { x: this.canvas.width * 0.5, y: this.canvas.height * 0.5, z: 1 } as Vector;
 
@@ -111,10 +111,10 @@ export default class Game {
         // A) LOGIC
         // backEntities
         this.backEntities.forEach((entity) => {
-            entity.tick(null, delta);
+            entity.tick([], delta);
         });
         this.foreEntities.forEach((entity) => {
-            entity.tick(null, delta);
+            entity.tick([], delta);
         });
 
         const { jump } = this.keys;
@@ -127,16 +127,10 @@ export default class Game {
         // affects to apply properly
         // check affects
         this.backEntities.forEach((entity) => {
-            if (this.player.checkCollision(entity)) {
-                // Done last to ensure that the final velocity affects are calculated
-                // perform entity affect on player
-                entity.affect(this.player, delta);
-            }
+            entity.affect(this.player, delta);
         });
         this.foreEntities.forEach((entity) => {
-            if (this.player.checkCollision(entity)) {
-                entity.affect(this.player, delta);
-            }
+            entity.affect(this.player, delta);
         });
 
         // remember previous key presses

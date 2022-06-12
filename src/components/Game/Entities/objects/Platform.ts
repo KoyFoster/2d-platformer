@@ -1,5 +1,6 @@
 import { Vector } from '../../Lib';
 import { Entity, EntityName } from '../Entity';
+import { Player } from '../Player';
 import { GenericObject } from './object';
 import { Tractor } from './Tractor';
 
@@ -29,6 +30,17 @@ export class Platform extends GenericObject {
         // update trackor
         this.tractor.setSize(this.size);
         this.tractor.setPos({ x: this.pos.x, y: this.pos.y - this.size.y + this.strokeWidth, z: this.pos.z });
+        this.tractor.setVel(this.vel);
+    }
+
+    public affect(other: Player, delta: number) {
+        const collision = this.tractor.checkCollision(other, delta);
+
+        if (collision) {
+            this.tractor.affect(other as Player, delta);
+        }
+
+        return collision;
     }
 
     public draw(ctx: CanvasRenderingContext2D) {

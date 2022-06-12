@@ -38,4 +38,8 @@ export class GenericObject extends Entity {
         this.pos.x += this.vel.x * delta;
         this.pos.y += this.vel.y * delta;
     }
+
+    public checkAffectCollision(other: Entity, delta: number) {
+        return false;
+    }
 }
