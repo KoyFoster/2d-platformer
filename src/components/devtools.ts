@@ -94,7 +94,7 @@ export class DevTools {
         const showGrid = localStorage.getItem('showGrid');
         if (showGrid && showGrid === 'true') this.showGrid = true;
 
-        console.log({ saveData, editHistory, editFuture });
+        // console.log({ saveData, editHistory, editFuture });
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
@@ -183,6 +183,8 @@ export class DevTools {
 
     addSelected(i: number) {
         // add to the begining of the list, so that is is focused
+        if (this.selectedHashMap[i]) this.selected = this.selected.filter((s) => s !== i);
+
         this.selected.unshift(i);
         this.selectedHashMap[i] = 1;
     }
@@ -199,7 +201,7 @@ export class DevTools {
     deselect() {
         this.selected = [];
         this.selectedHashMap = {};
-        console.log('-deselect-', this.data, this.entities);
+        // console.log('-deselect-', this.data, this.entities);
     }
 
     isSelected(i: number): boolean {
@@ -294,7 +296,7 @@ export class DevTools {
             this.data = first as EntityData[];
             // reload entities
             this.loadEntities();
-            console.log('UF', { data: this.data, history: this.history, future: this.future });
+            // console.log('UF', { data: this.data, history: this.history, future: this.future });
         }
     }
 
@@ -309,7 +311,7 @@ export class DevTools {
             this.data = first as EntityData[];
             // reload entities
             this.loadEntities();
-            console.log('UH', { data: this.data, history: this.history, future: this.future });
+            // console.log('UH', { data: this.data, history: this.history, future: this.future });
         }
     }
 
@@ -769,7 +771,10 @@ export class DevTools {
         if (bump) data.pos.x += data.size.x;
         const result = this.createEntity(_.cloneDeep(data));
         if (bump) data.pos.x -= data.size.x;
-        if (addData) this.data.push(result.data);
+        if (addData) {
+            this.data.push(result.data);
+            if (bump) this.setSelected(this.data.length - 1);
+        }
         this.entities.push(result.entity);
     }
 
@@ -923,12 +928,19 @@ export class DevTools {
 
         // if move is currently colliding the focused element and in dragging state
         if (this.focused) {
-            if (this.focused.e.checkCollisionV(this.mouse)) {
+            if (this.entDrag.dragging || this.focused.e.checkCollisionV(this.mouse)) {
                 const point = { ...this.applySnap(this.mouse) };
 
                 this.entDrag.onMove(e, this.canvas, this.applySnap(point), this.appendToHistory);
-                VectorMath.add(this.focused.d.pos, this.entDrag.getDragMovement());
-                this.focused.e.setPos({ ...this.focused.d.pos });
+
+                // drag all selected
+                const movement = this.entDrag.getDragMovement();
+                this.selected.forEach((i) => {
+                    const d = this.data[i];
+                    const ent = this.entities[i];
+                    VectorMath.add(d.pos, movement);
+                    ent.setPos({ ...d.pos });
+                });
             }
         }
     }

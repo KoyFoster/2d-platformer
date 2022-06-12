@@ -3,6 +3,8 @@ import { Vector } from '../components/Game/Lib';
 export class MouseDrag {
     protected drag = false as boolean;
 
+    protected dragStarted = false as boolean;
+
     protected dragged = false as boolean;
 
     pos = null as Vector | null;
@@ -40,8 +42,8 @@ export class MouseDrag {
         return this.pos.x !== this.prevPos.x || this.pos.y !== this.prevPos.y;
     }
 
-    get wasDragged() {
-        return this.dragged;
+    get dragging() {
+        return this.dragStarted;
     }
 
     onMove(e: MouseEvent, parent: HTMLCanvasElement, coord?: Vector, onInit?: CallableFunction) {
@@ -51,6 +53,7 @@ export class MouseDrag {
             if (this.prevPos === null && this.pos !== null) {
                 console.log('init:', onInit);
                 if (onInit) onInit();
+                this.dragStarted = true;
             }
             // update was dragged state
             if (this.pos === null || this.prevPos === null) {
@@ -66,6 +69,7 @@ export class MouseDrag {
 
     doDrop() {
         this.drag = false;
+        this.dragStarted = false;
         const result = this.getDragMovement();
         this.pos = null;
         this.prevPos = null;
@@ -88,5 +92,6 @@ export class MouseDrag {
 
     doDrag(drag: boolean) {
         this.drag = drag;
+        if (!drag) this.dragStarted = false;
     }
 }
