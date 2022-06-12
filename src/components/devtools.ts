@@ -1,6 +1,6 @@
 import _, { toNumber } from 'lodash';
 import { IHashMap, LocalStorageHandler as LSH, MouseDrag } from '../utils';
-import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
+import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform, Player } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
 import { Vector, VectorMath } from './Game/Lib';
 
@@ -25,13 +25,15 @@ enum SubCmd {
 }
 
 export class DevTools {
+    private player = new Player({ x: 0, y: 120, z: 0 });
+
     private canvas: HTMLCanvasElement;
 
     private ctx: CanvasRenderingContext2D;
 
     mouse = { x: 0, y: 0, z: 0 } as Vector;
 
-    hide = false as boolean;
+    public hide = false as boolean;
 
     pause = false as boolean;
 
@@ -72,6 +74,43 @@ export class DevTools {
     camDrag = new MouseDrag() as MouseDrag;
 
     entDrag = new MouseDrag() as MouseDrag;
+
+    keys = {
+        left: false,
+        right: false,
+        up: false,
+        down: false,
+
+        jump: false,
+    };
+
+    private prevKeys = { jump: false };
+
+    private onKey = (ev: KeyboardEvent, down: boolean) => {
+        switch (ev.key) {
+            case 'ArrowLeft':
+            case 'a':
+                this.keys.left = down;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                this.keys.right = down;
+                break;
+            case 'ArrowUp':
+            case 'w':
+                this.keys.up = down;
+                break;
+            case 'ArrowDown':
+            case 's':
+                this.keys.down = down;
+                break;
+            case ' ':
+            case 'Spacebar':
+                this.keys.jump = down;
+                break;
+            default:
+        }
+    };
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, defaultCam: Vector, origin: Vector) {
         this.canvas = canvas;
@@ -116,6 +155,10 @@ export class DevTools {
 
         window.addEventListener('keyup', (e) => this.commands(e));
         window.addEventListener('keydown', (e) => this.macros(e));
+
+        // Player movement
+        window.addEventListener('keydown', (e) => this.onKey(e, true));
+        window.addEventListener('keyup', (e) => this.onKey(e, false));
     }
 
     // destroy and recreate entities from meta data
@@ -530,6 +573,19 @@ export class DevTools {
     tick(delta: number) {
         if (this.hide) return;
 
+        const { jump } = this.keys;
+        const jumphold = this.keys.jump && this.prevKeys.jump;
+        this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
+        this.player.tick(this.entities, delta);
+
+        // remember previous key presses
+        this.prevKeys.jump = this.keys.jump;
+
+        // check affects
+        this.entities.forEach((entity) => {
+            entity.affect(this.player, delta);
+        });
+
         // A) Update Camera for Entities
         this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
         // this.ctx.translate(this.cam.x - (this.cam.x % this.snapToGridX), this.cam.y - (this.cam.y % this.snapToGridY));
@@ -540,6 +596,9 @@ export class DevTools {
 
         // display
         this.displayGrid();
+
+        // draw player
+        this.player.draw(this.ctx);
 
         // Draw Entities
         this.renderEntities(delta);
@@ -557,6 +616,9 @@ export class DevTools {
         // Undo Camera before UI
         this.ctx.translate(-this.cam.x, -this.cam.y);
         this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
+
+        // draw playe rui
+        this.player.UI(this.ctx);
 
         this.showInfo();
     }

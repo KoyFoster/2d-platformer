@@ -108,65 +108,66 @@ export default class Game {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // A) LOGIC
-        // backEntities
-        this.backEntities.forEach((entity) => {
-            entity.tick([], delta);
-        });
-        this.foreEntities.forEach((entity) => {
-            entity.tick([], delta);
-        });
+        if (this.dev.hide === true) {
+            // A) LOGIC
+            // backEntities
+            this.backEntities.forEach((entity) => {
+                entity.tick([], delta);
+            });
+            this.foreEntities.forEach((entity) => {
+                entity.tick([], delta);
+            });
 
-        const { jump } = this.keys;
-        const jumphold = this.keys.jump && this.prevKeys.jump;
-        this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
-        this.player.tick([...this.backEntities, ...this.foreEntities], delta);
+            const { jump } = this.keys;
+            const jumphold = this.keys.jump && this.prevKeys.jump;
+            this.player.move(this.keys.left, this.keys.right, jump, jumphold, delta);
+            this.player.tick([...this.backEntities, ...this.foreEntities], delta);
 
-        // do to player player velocity being calculated all throughout prior to this
-        // we need to calculate platform affects in post in order for motion based
-        // affects to apply properly
-        // check affects
-        this.backEntities.forEach((entity) => {
-            entity.affect(this.player, delta);
-        });
-        this.foreEntities.forEach((entity) => {
-            entity.affect(this.player, delta);
-        });
+            // do to player player velocity being calculated all throughout prior to this
+            // we need to calculate platform affects in post in order for motion based
+            // affects to apply properly
+            // check affects
+            this.backEntities.forEach((entity) => {
+                entity.affect(this.player, delta);
+            });
+            this.foreEntities.forEach((entity) => {
+                entity.affect(this.player, delta);
+            });
 
-        // remember previous key presses
-        this.prevKeys.jump = this.keys.jump;
-        // END OF LOGIC
+            // remember previous key presses
+            this.prevKeys.jump = this.keys.jump;
+            // END OF LOGIC
 
-        // B) Update Camera for Entities
-        this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
-        this.ctx.translate(this.camera.x, this.camera.y);
-        this.ctx.scale(this.camera.z, this.camera.z);
+            // B) Update Camera for Entities
+            this.ctx.resetTransform(); // Call thing essentially prevents the translate and similar calls from stacking
+            this.ctx.translate(this.camera.x, this.camera.y);
+            this.ctx.scale(this.camera.z, this.camera.z);
 
-        // C) DRAW
-        // player should show behind the objects
-        this.player.draw(this.ctx);
-        // everything should not show outside the cage, unless they are intelligent objects, like backEntities and blasters
-        this.backEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx);
-        });
-        // hard coded rectangles outside of cage
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
-        this.foreEntities.forEach((entity) => {
-            if (this.ctx !== null) entity.draw(this.ctx);
-        });
+            // C) DRAW
+            // player should show behind the objects
+            this.player.draw(this.ctx);
+            // everything should not show outside the cage, unless they are intelligent objects, like backEntities and blasters
+            this.backEntities.forEach((entity) => {
+                if (this.ctx !== null) entity.draw(this.ctx);
+            });
+            // hard coded rectangles outside of cage
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(-150, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
+            this.ctx.fillRect(1010, 350, this.canvas.width * 0.33, this.canvas.height * 0.4);
+            this.foreEntities.forEach((entity) => {
+                if (this.ctx !== null) entity.draw(this.ctx);
+            });
 
-        // Undo Camera before UI
-        this.ctx.translate(-this.camera.x, -this.camera.y);
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
+            // Undo Camera before UI
+            this.ctx.translate(-this.camera.x, -this.camera.y);
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
-        this.player.UI(this.ctx);
-        this.player.debug(this.ctx);
-
-        // UI
-        // draw relative to camera
+            this.player.UI(this.ctx);
+            this.player.debug(this.ctx);
+        }
+        // draw dev tools
         this.dev.tick(delta);
+
         if (debug) {
             this.debug();
             return this.ctx;
