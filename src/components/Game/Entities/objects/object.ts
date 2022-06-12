@@ -29,7 +29,7 @@ export class GenericObject extends Entity {
     }
 
     public setSize(size: Vector) {
-        this.size = size;
+        this.size = { x: size.x >= 0 ? size.x : 0, y: size.y >= 0 ? size.y : 0, z: size.z >= 0 ? size.z : 0 };
     }
 
     public tick(platforms: Entity[], delta: number) {

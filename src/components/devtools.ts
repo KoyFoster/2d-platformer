@@ -897,14 +897,27 @@ export class DevTools {
 
                 this.entDrag.onMove(e, this.canvas, this.applySnap(point), this.appendToHistory);
 
-                // drag all selected
-                const movement = this.entDrag.getDragMovement();
-                this.selected.forEach((i) => {
-                    const d = this.data[i];
-                    const ent = this.entities[i];
-                    VectorMath.add(d.pos, movement);
-                    ent.setPos({ ...d.pos });
-                });
+                if (this.entDrag.dragging) {
+                    const movement = this.entDrag.getDragMovement();
+                    // drag
+                    if (!e.altKey) {
+                        this.selected.forEach((i) => {
+                            const d = this.data[i];
+                            const ent = this.entities[i];
+                            VectorMath.add(d.pos, movement);
+                            ent.setPos({ ...d.pos });
+                        });
+                    }
+                    // resize
+                    else {
+                        this.selected.forEach((i) => {
+                            const d = this.data[i];
+                            const ent = this.entities[i];
+                            VectorMath.add(d.size, { x: -movement.x, y: movement.y, z: movement.z });
+                            ent.setSize({ ...d.size });
+                        });
+                    }
+                }
             }
         }
     }
