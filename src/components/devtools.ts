@@ -623,8 +623,11 @@ export class DevTools {
                         this.selected.forEach((i) => {
                             const d = this.data[i];
                             const ent = this.entities[i];
+                            const x = movement.x * (d.anchor.x ? 1 / d.anchor.x : 1);
+                            const y = movement.y * (d.anchor.y ? 1 / d.anchor.y : 1);
                             // needs to be scaled up based on anchor position
-                            VectorMath.add(d.size as Vector, { x: -movement.x * (d.anchor.x ? 1 / d.anchor.x : 0), y: movement.y * (d.anchor.y ? 1 / d.anchor.y : 0), z: movement.z });
+                            // conditional direction drags
+                            VectorMath.add(d.size as Vector, { x: d.anchor.x <= 0.5 ? -x : x, y: d.anchor.y >= 0.5 ? -y : y, z: movement.z });
                             ent.setSize({ ...d.size } as Vector);
                         });
                     }
@@ -781,24 +784,24 @@ export class DevTools {
 
                 // add entities
                 case '!':
-                    this.addNewEntity(EntityName.HurtBox, this.applySnap(this.mouse));
                     this.appendToHistory();
+                    this.addNewEntity(EntityName.HurtBox, this.applySnap(this.mouse));
                     break;
                 case '@':
-                    this.addNewEntity(EntityName.Motion, this.applySnap(this.mouse));
                     this.appendToHistory();
+                    this.addNewEntity(EntityName.Motion, this.applySnap(this.mouse));
                     break;
                 case '#':
-                    this.addNewEntity(EntityName.Platform, this.applySnap(this.mouse));
                     this.appendToHistory();
+                    this.addNewEntity(EntityName.Platform, this.applySnap(this.mouse));
                     break;
                 case '$':
-                    this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
                     this.appendToHistory();
+                    this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
                     break;
                 case ')':
-                    this.addNewEntity(EntityName.Cage, this.applySnap(this.mouse));
                     this.appendToHistory();
+                    this.addNewEntity(EntityName.Cage, this.applySnap(this.mouse));
                     break;
                 default:
                     break;
