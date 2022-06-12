@@ -587,6 +587,7 @@ export class DevTools {
     }
 
     createEntity(data: EntityData, useDefaults = false as boolean) {
+        console.log('createEntity:', { data, useDefaults });
         let buffer;
         switch (data.type) {
             case EntityName.Cage:
@@ -637,6 +638,7 @@ export class DevTools {
     }
 
     nextEntity() {
+        if (this.data.length === 0) return;
         if (this.focused === null || this.focused.i === this.data.length - 1) {
             this.setSelected(0);
             return;
@@ -645,6 +647,7 @@ export class DevTools {
     }
 
     prevEntity() {
+        if (this.data.length === 0) return;
         if (this.focused === null || this.focused.i === 0) {
             this.setSelected(this.data.length - 1);
             return;
@@ -907,8 +910,24 @@ export class DevTools {
                 default:
                     break;
             }
-        } else if (e.shiftKey) {
+        } else {
             switch (e.key) {
+                // deselect
+                case 'Escape':
+                    this.deselect();
+                    break;
+                // cut
+                case 'Delete':
+                    if (this.selected.length) {
+                        this.appendToHistory();
+                        this.deleteSelected();
+                    }
+                    break;
+                case 'Tab':
+                    e.preventDefault();
+                    if (e.shiftKey) this.prevEntity();
+                    else this.nextEntity();
+                    break;
                 case 'C':
                     if (this.focused) {
                         let validColor = false as boolean;
@@ -945,28 +964,6 @@ export class DevTools {
                 case 'R':
                     this.reload();
                     break;
-                default:
-                    break;
-            }
-        } else {
-            switch (e.key) {
-                // deselect
-                case 'Escape':
-                    this.deselect();
-                    break;
-                // cut
-                case 'Delete':
-                    if (this.selected.length) {
-                        this.appendToHistory();
-                        this.deleteSelected();
-                    }
-                    break;
-                case 'Tab':
-                    e.preventDefault();
-                    if (e.shiftKey) this.prevEntity();
-                    else this.nextEntity();
-                    break;
-
                 default:
                     break;
             }
