@@ -623,8 +623,9 @@ export class DevTools {
                         this.selected.forEach((i) => {
                             const d = this.data[i];
                             const ent = this.entities[i];
-                            VectorMath.add(d.size, { x: -movement.x, y: movement.y, z: movement.z });
-                            ent.setSize({ ...d.size });
+                            // needs to be scaled up based on anchor position
+                            VectorMath.add(d.size as Vector, { x: -movement.x * (d.anchor.x ? 1 / d.anchor.x : 0), y: movement.y * (d.anchor.y ? 1 / d.anchor.y : 0), z: movement.z });
+                            ent.setSize({ ...d.size } as Vector);
                         });
                     }
                 }
