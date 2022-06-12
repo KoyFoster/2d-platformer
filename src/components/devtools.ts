@@ -219,6 +219,18 @@ export class DevTools {
         this.selectedHashMap[i] = 1;
     }
 
+    toggleSelected(i: number) {
+        console.log('-toggleSelected-');
+        // add to the begining of the list, so that is is focused
+        if (this.selectedHashMap[i]) {
+            this.selected = this.selected.filter((s) => s !== i);
+            delete this.selectedHashMap[i];
+        } else {
+            this.selectedHashMap[i] = 1;
+            this.selected.unshift(i);
+        }
+    }
+
     selectAll() {
         console.log('-selectAll-');
         this.selectedHashMap = {};
@@ -228,10 +240,10 @@ export class DevTools {
         });
     }
 
-    deselect() {
+    deselectAll() {
         this.selected = [];
         this.selectedHashMap = {};
-        // console.log('-deselect-', this.data, this.entities);
+        // console.log('-deselectAll-', this.data, this.entities);
     }
 
     isSelected(i: number): boolean {
@@ -429,13 +441,14 @@ export class DevTools {
         this.entities.every((ent, index) => {
             if (ent.checkCollisionV(this.mouse)) {
                 if (e.ctrlKey) this.addSelected(index);
+                else if (e.shiftKey) this.toggleSelected(index);
                 else this.setSelected(index);
                 selected = true;
                 return false;
             }
             return true;
         });
-        if (!selected) this.deselect();
+        if (!selected) this.deselectAll();
     }
 
     createEntity(data: EntityData, useDefaults = false as boolean) {
@@ -720,7 +733,7 @@ export class DevTools {
         this.data = this.data.filter((_d, i) => !this.selectedHashMap[i]);
         this.entities = this.entities.filter((_e, i) => !this.selectedHashMap[i]);
         // lose focus
-        this.deselect();
+        this.deselectAll();
     }
 
     addSelectedToClipboard() {
@@ -792,9 +805,9 @@ export class DevTools {
             }
         } else {
             switch (e.key) {
-                // deselect
+                // deselectAll
                 case 'Escape':
-                    this.deselect();
+                    this.deselectAll();
                     break;
                 // cut
                 case 'Delete':
