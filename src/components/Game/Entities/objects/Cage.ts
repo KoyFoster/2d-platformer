@@ -4,7 +4,7 @@ import { Player } from '../Player';
 import { GenericObject } from './object';
 
 export class Cage extends GenericObject {
-    protected type = EntityName.Vage as EntityName;
+    protected type = EntityName.Cage as EntityName;
 
     protected vel: Vector = { x: 0, y: 0, z: 0 };
 
@@ -18,7 +18,6 @@ export class Cage extends GenericObject {
     }
 
     public setVel(vel: Vector) {
-        this.type = EntityName.Cage;
         this.vel = vel;
     }
 

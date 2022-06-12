@@ -1,7 +1,7 @@
 import { GenericObject, Player, Platform, HurtBox, Tractor, EntityData, Cage, EntityName } from './Entities';
 import { HurtBoxMotion } from './Entities/objects/HurtBoxMotion';
 import { DevTools } from '../devtools';
-import seq0 from './Maps/sequences/seq_2.json';
+import seq0 from './Maps/sequences/seq_dev.json';
 import { Sequence } from './Maps/sequences';
 import { Vector } from './Lib';
 

@@ -107,21 +107,6 @@ export class DevTools {
             // load in all objects
             this.loadEntities();
         }
-        // create initial entity
-        else {
-            this.addEntity(
-                {
-                    type: EntityName.Generic,
-                    anchor: { x: 0, y: 0, z: 0.5 },
-                    pos: { x: 0, y: 0, z: 0 },
-                    size: { x: 10, y: 10, z: 0 },
-                    vel: { x: 0, y: 0, z: 0 },
-                    color: 'white',
-                },
-                false,
-                true
-            );
-        }
 
         // SETUP LISTENER
         window.addEventListener('mouseup', (e) => this.onClickUp(e));
@@ -808,6 +793,10 @@ export class DevTools {
                     break;
                 case '$':
                     this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
+                    this.appendToHistory();
+                    break;
+                case ')':
+                    this.addNewEntity(EntityName.Cage, this.applySnap(this.mouse));
                     this.appendToHistory();
                     break;
                 default:
