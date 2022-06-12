@@ -51,7 +51,6 @@ export class MouseDrag {
         if (this.drag && parent === e.target) {
             // check for init state
             if (this.prevPos === null && this.pos !== null) {
-                console.log('init:', onInit);
                 if (onInit) onInit();
                 this.dragStarted = true;
             }

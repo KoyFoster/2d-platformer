@@ -235,7 +235,7 @@ export class DevTools {
                     this.cmdState = CmdState.T;
                     break;
                 case 'a':
-                    this.cmdState = CmdState.A;
+                    // this.cmdState = CmdState.A;
                     break;
                 case 'p':
                     this.cmdState = CmdState.P;
@@ -355,9 +355,13 @@ export class DevTools {
     }
 
     changeEntityColor(color: string) {
-        if (this.focused && this.focused.d.color !== color) {
-            this.focused.d.color = color;
-            this.reloadEntity(this.focused.i);
+        if (this.selected.length) {
+            this.selected.forEach((s) => {
+                const d = this.data[s];
+                d.color = color;
+            });
+
+            this.reload();
         }
     }
 
