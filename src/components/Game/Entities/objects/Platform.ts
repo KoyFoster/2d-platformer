@@ -3,6 +3,8 @@ import { Entity, EntityName } from '../Entity';
 import { GenericObject } from './object';
 
 export class Platform extends GenericObject {
+    protected type = EntityName.Platform as EntityName;
+
     protected strokeWidth = 1 as number;
 
     public constructor(pos = { x: 0, y: 0, z: 0 } as Vector, size = { x: 100, y: 10, z: 0 } as Vector, color = 'white' as string) {
@@ -10,7 +12,6 @@ export class Platform extends GenericObject {
     }
 
     public setVel(vel: Vector) {
-        this.type = EntityName.Platform;
         this.vel = vel;
     }
 

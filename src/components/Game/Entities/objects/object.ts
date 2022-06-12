@@ -1,7 +1,9 @@
 import { Vector } from '../../Lib';
-import { Entity, EntityData } from '../Entity';
+import { Entity, EntityData, EntityName } from '../Entity';
 
 export class GenericObject extends Entity {
+    protected type = EntityName.Base as EntityName;
+
     protected vel: Vector = { x: 0, y: 0, z: 0 };
 
     public constructor(pos: Vector, size: Vector, color: string) {

@@ -94,7 +94,8 @@ export class DevTools {
         const showGrid = localStorage.getItem('showGrid');
         if (showGrid && showGrid === 'true') this.showGrid = true;
 
-        // console.log({ saveData, editHistory, editFuture });
+        console.log({ saveData, editHistory, editFuture });
+
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
@@ -514,6 +515,7 @@ export class DevTools {
         this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
 
         if (this.focused !== null) {
+            this.ctx.fillText(` - Add(T): HB(S1) HBM(S2) Pl{S3} GB(S4)`, 700, (yPos += 30));
             this.ctx.fillText(` - Type(T): ${this.focused.d.type}`, 700, (yPos += 30));
             this.ctx.fillText(` - Position(P): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}] Anchor(A): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
             this.ctx.fillText(` - Size(S): [${this.focused.d.size.x}, ${this.focused.d.size.y}] Velocity(V)${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, 700, (yPos += 30));
@@ -587,33 +589,31 @@ export class DevTools {
     }
 
     createEntity(data: EntityData, useDefaults = false as boolean) {
-        console.log('createEntity:', { data, useDefaults });
         let buffer;
         switch (data.type) {
             case EntityName.Cage:
-                if (!useDefaults) buffer = new Cage(data.pos, data.size, data.color);
-                else buffer = new Cage(data.pos);
+                if (!useDefaults) buffer = new Cage(data.pos as Vector, data.size, data.color);
+                else buffer = new Cage(data.pos as Vector);
                 break;
             case EntityName.HurtBox:
-                if (!useDefaults) buffer = new HurtBox(data.pos, data.size, data.color);
-                else buffer = new HurtBox(data.pos);
+                if (!useDefaults) buffer = new HurtBox(data.pos as Vector, data.size, data.color);
+                else buffer = new HurtBox(data.pos as Vector);
                 break;
             case EntityName.Motion:
-                if (!useDefaults) buffer = new HurtBoxMotion(data.pos, data.size, data.color);
-                else buffer = new HurtBoxMotion(data.pos);
-
+                if (!useDefaults) buffer = new HurtBoxMotion(data.pos as Vector, data.size, data.color);
+                else buffer = new HurtBoxMotion(data.pos as Vector);
                 break;
             case EntityName.Platform:
                 if (!useDefaults) buffer = new Platform(data.pos, data.size, data.color);
-                else buffer = new Platform(data.pos);
+                else buffer = new Platform(data.pos as Vector);
                 break;
             case EntityName.Generic:
             default:
-                buffer = new GenericObject(data.pos, data.size, data.color);
+                buffer = new GenericObject(data.pos as Vector, data.size as Vector, data.color as string);
                 break;
         }
-        buffer.setVel({ ...data.vel });
-        buffer.setAnchor({ ...data.anchor });
+        if (data.vel) buffer.setVel({ ...data.vel });
+        if (data.anchor) buffer.setAnchor({ ...data.anchor });
 
         return { entity: buffer, data: useDefaults ? buffer.data : data };
     }
@@ -634,6 +634,13 @@ export class DevTools {
             this.data.push(result.data);
             if (bump) this.setSelected(this.data.length - 1);
         }
+        this.entities.push(result.entity);
+    }
+
+    addNewEntity(type: EntityName, pos: Vector) {
+        console.log('addNewEntity:', { type, pos });
+        const result = this.createEntity({ type, pos }, true);
+        this.data.push(result.data);
         this.entities.push(result.entity);
     }
 
@@ -963,6 +970,24 @@ export class DevTools {
                     break;
                 case 'R':
                     this.reload();
+                    break;
+
+                // add entities
+                case '!':
+                    this.addNewEntity(EntityName.HurtBox, { ...this.mouse });
+                    this.appendToHistory();
+                    break;
+                case '@':
+                    this.addNewEntity(EntityName.Motion, { ...this.mouse });
+                    this.appendToHistory();
+                    break;
+                case '#':
+                    this.addNewEntity(EntityName.Platform, { ...this.mouse });
+                    this.appendToHistory();
+                    break;
+                case '$':
+                    this.addNewEntity(EntityName.Blaster, { ...this.mouse });
+                    this.appendToHistory();
                     break;
                 default:
                     break;

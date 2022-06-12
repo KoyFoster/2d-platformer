@@ -12,18 +12,19 @@ export enum EntityName {
     HurtBox = 'hurtbox',
     Tractor = 'tractor',
     Motion = 'motion',
+    Blaster = 'blaster',
 }
 export interface EntityData {
     type: EntityName;
-    anchor: Vector;
-    pos: Vector;
-    size: Vector;
-    vel: Vector;
-    color: string;
+    anchor?: Vector;
+    pos?: Vector;
+    size?: Vector;
+    vel?: Vector;
+    color?: string;
 }
 
 export abstract class Entity {
-    public type = EntityName.Base as EntityName;
+    protected type = EntityName.Base as EntityName;
 
     protected pos: Vector;
 

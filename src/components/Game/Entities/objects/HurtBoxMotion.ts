@@ -4,9 +4,10 @@ import { Player } from '../Player';
 import { GenericObject } from './object';
 
 export class HurtBoxMotion extends GenericObject {
+    protected type = EntityName.Motion as EntityName;
+
     public constructor(pos: Vector, size = { x: 30, y: 60, z: 0 } as Vector, color = '#6060ff' as string) {
         super(pos, size, color);
-        this.type = EntityName.Motion;
         this.solid = false;
     }
 
