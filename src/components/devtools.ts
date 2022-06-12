@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { toNumber } from 'lodash';
 import { IHashMap, LocalStorageHandler as LSH, MouseDrag } from '../utils';
 import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
@@ -242,6 +242,18 @@ export class DevTools {
                     break;
                 case 'v':
                     this.cmdState = CmdState.V;
+                    if (this.focused) {
+                        let x = window.prompt('Enter x velocity', this.focused.d.vel.x.toString(10)) as number | string | null;
+                        if (x !== null) x = toNumber(x);
+                        let y = window.prompt('Enter y velocity', this.focused.d.vel.y.toString(10)) as number | string | null;
+                        if (y !== null) y = toNumber(y);
+
+                        if (((x !== null || y !== null) && x !== this.focused.d.vel.x) || y !== this.focused.d.vel.y) {
+                            this.appendToHistory();
+                            const value = { x: x !== null ? x : this.focused.d.vel.x, y: y !== null ? y : this.focused.d.vel.y, z: this.focused.d.vel.z } as Vector;
+                            this.changeEntityProperty(value, 'vel');
+                        }
+                    }
                     break;
                 case 's':
                     this.cmdState = CmdState.S;
@@ -267,7 +279,7 @@ export class DevTools {
 
                                 if (this.ctx.fillStyle === buffer) {
                                     this.appendToHistory();
-                                    this.changeEntityColor(buffer);
+                                    this.changeEntityProperty(buffer, 'color');
                                     validColor = true;
                                 } else alert('invalid color');
 
@@ -354,11 +366,13 @@ export class DevTools {
         }
     }
 
-    changeEntityColor(color: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    changeEntityProperty(value: any, key: keyof EntityData) {
+        console.log('changeEntityProperty:', { value, key });
         if (this.selected.length) {
             this.selected.forEach((s) => {
-                const d = this.data[s];
-                d.color = color;
+                const d = this.data[s] as EntityData;
+                d[key] = value;
             });
 
             this.reload();
@@ -525,21 +539,6 @@ export class DevTools {
                                             break;
                                     }
                                     break;
-                                case CmdState.V:
-                                    change = true;
-                                    switch (this.subCmd) {
-                                        case SubCmd.X:
-                                            this.focused.d.vel.x = buffer;
-                                            this.subCmd = SubCmd.NONE;
-                                            break;
-                                        case SubCmd.Y:
-                                            this.focused.d.vel.y = buffer;
-                                            this.subCmd = SubCmd.NONE;
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                    break;
                                 default:
                                     break;
                             }
@@ -639,19 +638,6 @@ export class DevTools {
                         break;
                     default:
                         if (this.focused) this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            case CmdState.V:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (this.focused) this.vectorMsgTemplate('V', true, this.focused.d.vel, (yPos += 30));
-                        break;
-                    case SubCmd.Y:
-                        if (this.focused) this.vectorMsgTemplate('V', false, this.focused.d.vel, (yPos += 30));
-                        break;
-                    default:
-                        if (this.focused) this.ctx.fillText(`V: enter x(X), enter y(Y): [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]`, 700, (yPos += 30));
                         break;
                 }
                 break;
