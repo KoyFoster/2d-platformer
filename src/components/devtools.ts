@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { IHashMap, MouseDrag } from '../utils';
+import { IHashMap, LocalStorageHandler as LSH, MouseDrag } from '../utils';
 import { Cage, EntityData, EntityName, GenericObject, HurtBox, Platform } from './Game/Entities';
 import { HurtBoxMotion } from './Game/Entities/objects/HurtBoxMotion';
 import { Vector, VectorMath } from './Game/Lib';
@@ -62,6 +62,8 @@ export class DevTools {
 
     history = [] as EntityData[][]; // saves deep states of all major changes
 
+    future = [] as EntityData[][]; // saves deep states of all undone changes
+
     // states
     snapToGridX = 10 as number; // as in only translate on x or y axis
 
@@ -78,8 +80,12 @@ export class DevTools {
             this.origin = origin;
             this.cam = defaultCam;
         }
-        let lastSave = localStorage.getItem('lastObject') as EntityData[] | string | null;
-        lastSave = lastSave ? (JSON.parse(lastSave as string) as EntityData[]) : ([] as EntityData[]);
+        // load last save
+        const saveData = LSH.Load('saveData') as EntityData[] | null;
+        const editHistory = LSH.Load('editHistory') as EntityData[][] | null;
+        const editFuture = LSH.Load('editFuture') as EntityData[][] | null;
+        if (editHistory) this.history = editHistory;
+        if (editFuture) this.future = editFuture;
 
         const hide = localStorage.getItem('hideDev');
         if (hide && hide === 'true') this.hide = true;
@@ -88,15 +94,15 @@ export class DevTools {
         const showGrid = localStorage.getItem('showGrid');
         if (showGrid && showGrid === 'true') this.showGrid = true;
 
-        console.log(lastSave);
+        console.log({ saveData, editHistory, editFuture });
         // Entity creation properties
         this.inputBuffer = '';
         this.validInput = false;
         this.cmdState = CmdState.NONE;
         this.subCmd = SubCmd.NONE;
 
-        if (lastSave.length > 0) {
-            this.data = lastSave;
+        if (saveData !== null && saveData.length > 0) {
+            this.data = saveData;
             // load in all objects
             this.loadEntities();
         }
@@ -117,30 +123,13 @@ export class DevTools {
         }
 
         // SETUP LISTENER
-        window.addEventListener('mouseup', (e) => this.onClick(e));
-
-        // drag
-        window.addEventListener('mousedown', (e) => {
-            // left click
-            if (e.button === 0 && this.selected.length) this.entDrag.doDrag(true);
-            // middle mouse
-            if (e.button === 1) this.camDrag.doDrag(true);
-        });
-
+        window.addEventListener('mouseup', (e) => this.onClickUp(e));
+        window.addEventListener('mousedown', (e) => this.beginDrag(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
-
         window.addEventListener('wheel', (e) => this.onScroll(e));
-        // window.addEventListener('keyup', (e) => this.subCommands(e));
+
         window.addEventListener('keyup', (e) => this.commands(e));
         window.addEventListener('keydown', (e) => this.macros(e));
-        window.addEventListener('keydown', (e) => {
-            this.entDrag.setHorizDrag = e.shiftKey;
-            this.entDrag.setVertDrag = e.ctrlKey;
-        });
-        window.addEventListener('keyup', (e) => {
-            this.entDrag.setHorizDrag = false;
-            this.entDrag.setVertDrag = false;
-        });
     }
 
     // destroy and recreate entities from meta data
@@ -150,6 +139,10 @@ export class DevTools {
         this.data.forEach((ent) => {
             this.addEntity(ent, false, false);
         });
+    }
+
+    reload() {
+        for (let i = 0; i < this.data.length; i += 1) this.reloadEntity(i);
     }
 
     // specify an already potentially selected element for focus
@@ -215,6 +208,8 @@ export class DevTools {
 
     // Commands
     commands(e: KeyboardEvent) {
+        this.subCommands(e);
+
         // on F1 Hide Dev Tool
         if (e.key === 'F2') {
             this.hide = !this.hide;
@@ -268,6 +263,10 @@ export class DevTools {
                 default:
                     break;
             }
+
+        // drag states release
+        this.entDrag.setHorizDrag = false;
+        this.entDrag.setVertDrag = false;
     }
 
     getValidInput(clear = false as boolean): number {
@@ -278,10 +277,44 @@ export class DevTools {
         return result;
     }
 
+    // this should be called before a major change is made
+    private appendToHistory = () => {
+        console.log('appendToHistory');
+        this.history.unshift(_.cloneDeep(this.data));
+        this.future = [];
+    };
+
+    undoFuture() {
+        if (this.history.length) {
+            // remove from history
+            const first = this.history.shift();
+            // prepend to future with present
+            this.future.unshift(_.cloneDeep(this.data) as EntityData[]);
+            // apply history to present
+            this.data = first as EntityData[];
+            // reload entities
+            this.loadEntities();
+            console.log('UF', { data: this.data, history: this.history, future: this.future });
+        }
+    }
+
+    redoHistory() {
+        console.log('redoHistory');
+        if (this.future.length) {
+            // remove from future
+            const first = this.future.shift();
+            // prepend to history with present
+            this.history.unshift(_.cloneDeep(this.data) as EntityData[]);
+            // apply history to present
+            this.data = first as EntityData[];
+            // reload entities
+            this.loadEntities();
+            console.log('UH', { data: this.data, history: this.history, future: this.future });
+        }
+    }
+
     changeEntityType(type: EntityName) {
         let changes = false;
-        // save current state
-        this.history.unshift(_.cloneDeep(this.data));
 
         this.data.forEach((d, index) => {
             if (d.type !== type) {
@@ -741,7 +774,7 @@ export class DevTools {
     }
 
     nextEntity() {
-        if (this.focused === null || this.focused.s) {
+        if (this.focused === null || this.focused.i === this.data.length - 1) {
             this.setSelected(0);
             return;
         }
@@ -757,8 +790,10 @@ export class DevTools {
     }
 
     save() {
-        localStorage.setItem('lastObject', JSON.stringify(this.data));
-        console.log('saved:', this.data);
+        localStorage.setItem('editHistory', JSON.stringify(this.history));
+        localStorage.setItem('editFuture', JSON.stringify(this.future));
+        localStorage.setItem('saveData', JSON.stringify(this.data));
+        console.log('-saved-');
     }
 
     clearAll() {
@@ -776,10 +811,6 @@ export class DevTools {
                 entities: this.data,
             })
         );
-    }
-
-    reload() {
-        for (let i = 0; i < this.data.length; i += 1) this.reloadEntity(i);
     }
 
     displayGrid() {
@@ -857,37 +888,8 @@ export class DevTools {
         if (this.cam.z <= 0.1) this.cam.z = 0.1;
     }
 
-    onClick(e: MouseEvent) {
+    onClickUp(e: MouseEvent) {
         this.selectEntity(e);
-
-        if (this.focused !== null) {
-            switch (this.cmdState) {
-                case CmdState.P:
-                    if (e.button === 0) {
-                        let { x, y } = this.mouse;
-                        x -= x % this.snapToGridX;
-                        y -= y % this.snapToGridY;
-
-                        this.focused.d.pos = { x, y, z: this.focused.d.pos.z };
-                        this.reload();
-                    }
-                    break;
-                case CmdState.S:
-                    if (e.button === 0) {
-                        let { x, y } = this.mouse;
-                        x -= x % this.snapToGridX;
-                        y -= y % this.snapToGridY;
-                        x = Math.abs(this.focused.d.pos.x - x);
-                        y = Math.abs(y - this.focused.d.pos.y);
-                        this.focused.d.size = { x, y, z: this.focused.d.pos.z };
-                        this.reload();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
         this.onMouseRelease(e);
     }
 
@@ -897,6 +899,15 @@ export class DevTools {
 
     getMousePos(e: MouseEvent): Vector {
         return { x: e.offsetX - this.origin.x, y: e.offsetY - this.origin.y, z: 0 };
+    }
+
+    beginDrag(e: MouseEvent) {
+        // left click
+        if (e.button === 0 && this.selected.length) {
+            this.entDrag.doDrag(true);
+        }
+        // middle mouse
+        if (e.button === 1) this.camDrag.doDrag(true);
     }
 
     onMouseMove(e: MouseEvent) {
@@ -915,7 +926,7 @@ export class DevTools {
             if (this.focused.e.checkCollisionV(this.mouse)) {
                 const point = { ...this.applySnap(this.mouse) };
 
-                this.entDrag.onMove(e, this.canvas, this.applySnap(point));
+                this.entDrag.onMove(e, this.canvas, this.applySnap(point), this.appendToHistory);
                 VectorMath.add(this.focused.d.pos, this.entDrag.getDragMovement());
                 this.focused.e.setPos({ ...this.focused.d.pos });
             }
@@ -948,21 +959,11 @@ export class DevTools {
 
     addSelectedToClipboard() {
         this.clipboard = [];
-        this.selected.forEach((s, i) => {
+        this.selected.forEach((s) => {
             this.clipboard.push(this.data[s]);
         });
         // filter out cut data and entities
         console.log('clipboard:', this.clipboard);
-    }
-
-    undo() {
-        if (this.history.length) {
-            // get most recent and remove it
-            const first = this.history.shift();
-            this.data = first as EntityData[];
-            // reload entities
-            this.reload();
-        }
     }
 
     macros(e: KeyboardEvent) {
@@ -976,6 +977,7 @@ export class DevTools {
                 // cut
                 case 'x':
                     if (this.selected.length) {
+                        this.appendToHistory();
                         this.addSelectedToClipboard();
                         this.deleteSelected();
                     }
@@ -983,6 +985,7 @@ export class DevTools {
                 // paste
                 case 'v':
                     if (this.clipboard.length) {
+                        this.appendToHistory();
                         this.clipboard.forEach((d) => {
                             this.addEntity(d, true, true);
                         });
@@ -994,7 +997,10 @@ export class DevTools {
                     break;
                 // undo
                 case 'z':
-                    this.undo();
+                    this.undoFuture();
+                    break;
+                case 'Z':
+                    this.redoHistory();
                     break;
                 case 's':
                     if (e.ctrlKey) {
@@ -1022,6 +1028,7 @@ export class DevTools {
                 // cut
                 case 'Delete':
                     if (this.selected.length) {
+                        this.appendToHistory();
                         this.deleteSelected();
                     }
                     break;
@@ -1035,5 +1042,8 @@ export class DevTools {
                     break;
             }
         }
+        // drag states
+        this.entDrag.setHorizDrag = e.shiftKey;
+        this.entDrag.setVertDrag = e.ctrlKey;
     }
 }
