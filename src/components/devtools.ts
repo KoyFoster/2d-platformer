@@ -142,7 +142,8 @@ export class DevTools {
     }
 
     reload() {
-        for (let i = 0; i < this.data.length; i += 1) this.reloadEntity(i);
+        console.log('reload');
+        this.loadEntities();
     }
 
     // specify an already potentially selected element for focus
@@ -345,21 +346,6 @@ export class DevTools {
         }
     }
 
-    changeEntityType(type: EntityName) {
-        let changes = false;
-
-        this.data.forEach((d, index) => {
-            if (d.type !== type) {
-                changes = true;
-                d.type = type;
-                this.reloadEntity(index);
-            }
-        });
-
-        // shift if no changes were made
-        if (!changes) this.history.shift();
-    }
-
     reloadFocused() {
         if (this.focused !== null) {
             this.reloadEntity(this.focused.i);
@@ -389,16 +375,16 @@ export class DevTools {
                 case CmdState.T:
                     switch (key) {
                         case 'c':
-                            this.changeEntityType(EntityName.Cage);
+                            this.changeEntityProperty(EntityName.Cage, 'type');
                             break;
                         case 'p':
-                            this.changeEntityType(EntityName.Platform);
+                            this.changeEntityProperty(EntityName.Platform, 'type');
                             break;
                         case 'h':
-                            this.changeEntityType(EntityName.HurtBox);
+                            this.changeEntityProperty(EntityName.HurtBox, 'type');
                             break;
                         case 'm':
-                            this.changeEntityType(EntityName.Motion);
+                            this.changeEntityProperty(EntityName.Motion, 'type');
                             break;
                         case 'escape':
                             this.cmdState = CmdState.NONE;
@@ -675,7 +661,7 @@ export class DevTools {
                     this.ctx.filter = 'drop-shadow(4px 4px 0px green)'; // offx, offy, blurRad
                 }
 
-                if (this.pause) {
+                if (!this.pause) {
                     ent.tick([], delta);
                 }
                 ent.draw(this.ctx);
