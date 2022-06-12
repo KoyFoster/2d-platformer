@@ -1,11 +1,12 @@
 import { Vector } from '../../Lib';
 import { Entity, EntityName } from '../Entity';
 import { Player } from '../Player';
+import { GenericObject } from './object';
 
-export class Tractor extends Entity {
-    public type = EntityName.Tractor as EntityName;
+export class Tractor extends GenericObject {
+    protected type = EntityName.Tractor as EntityName;
 
-    private vel: Vector = { x: 0, y: 0, z: 0 };
+    protected strokeWidth = 1 as number;
 
     public constructor(pos: Vector, size: Vector, color: string) {
         super(pos, size, color);
@@ -27,5 +28,16 @@ export class Tractor extends Entity {
         if (player.getGrounded) player.getPosition.x += this.vel.x * delta;
 
         return true;
+    }
+
+    public draw(ctx: CanvasRenderingContext2D) {
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.strokeRect(
+            this.pos.x - this.bounds.leftRad, // x
+            this.pos.y - this.bounds.topRad, // y
+            this.size.x, // w
+            this.size.y // h
+        );
     }
 }
