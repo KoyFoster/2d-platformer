@@ -795,19 +795,19 @@ export class DevTools {
 
                 // add entities
                 case '!':
-                    this.addNewEntity(EntityName.HurtBox, { ...this.mouse });
+                    this.addNewEntity(EntityName.HurtBox, this.applySnap(this.mouse));
                     this.appendToHistory();
                     break;
                 case '@':
-                    this.addNewEntity(EntityName.Motion, { ...this.mouse });
+                    this.addNewEntity(EntityName.Motion, this.applySnap(this.mouse));
                     this.appendToHistory();
                     break;
                 case '#':
-                    this.addNewEntity(EntityName.Platform, { ...this.mouse });
+                    this.addNewEntity(EntityName.Platform, this.applySnap(this.mouse));
                     this.appendToHistory();
                     break;
                 case '$':
-                    this.addNewEntity(EntityName.Blaster, { ...this.mouse });
+                    this.addNewEntity(EntityName.Blaster, this.applySnap(this.mouse));
                     this.appendToHistory();
                     break;
                 default:
