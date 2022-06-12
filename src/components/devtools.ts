@@ -254,9 +254,27 @@ export class DevTools {
                         if (this.cmdState === CmdState.NONE) {
                             this.saveToConsole();
                         }
-                    } else {
-                        this.cmdState = CmdState.Color;
-                        this.inputBuffer = '';
+                    } else if (this.focused) {
+                        let validColor = false as boolean;
+                        let buffer = '' as string | null;
+                        while (validColor === false && buffer !== null) {
+                            buffer = window.prompt('Enter Color', this.focused.d.color);
+
+                            // validate color
+                            if (buffer !== null) {
+                                const lastStyle = this.ctx.fillStyle;
+                                this.ctx.fillStyle = buffer;
+
+                                if (this.ctx.fillStyle === buffer) {
+                                    this.appendToHistory();
+                                    this.changeEntityColor(buffer);
+                                    validColor = true;
+                                } else alert('invalid color');
+
+                                console.log('this.ctx.fillStyle:', this.ctx.fillStyle);
+                                this.ctx.fillStyle = lastStyle;
+                            }
+                        }
                     }
                     break;
                 case 'enter':
@@ -368,28 +386,6 @@ export class DevTools {
                             this.cmdState = CmdState.NONE;
                             break;
                         default:
-                            break;
-                    }
-                    break;
-                case CmdState.Color:
-                    switch (key) {
-                        case 'escape':
-                            break;
-                        case 'enter':
-                            {
-                                // validate color
-                                const lastStyle = this.ctx.fillStyle;
-                                this.ctx.fillStyle = this.inputBuffer;
-                                console.log('this.ctx.fillStyle:', this.ctx.fillStyle);
-                                if (this.ctx.fillStyle === this.inputBuffer) {
-                                    this.changeEntityColor(this.inputBuffer);
-                                    this.cmdState = CmdState.NONE;
-                                }
-                                this.ctx.fillStyle = lastStyle;
-                            }
-                            break;
-                        default:
-                            this.captureInput(key);
                             break;
                     }
                     break;
@@ -589,7 +585,7 @@ export class DevTools {
                     this.ctx.fillText(`S: set Size: [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
                     const prevStyle = this.ctx.fillStyle;
                     this.ctx.fillStyle = this.focused.d.color;
-                    this.ctx.fillText(`C: color: ${this.focused.d.color}`, 700, (yPos += 30));
+                    this.ctx.fillText(`Color: ${this.focused.d.color}`, 700, (yPos += 30));
                     this.ctx.fillStyle = prevStyle;
                 }
                 this.ctx.fillText(`R: reload`, 700, (yPos += 30));
@@ -601,14 +597,6 @@ export class DevTools {
                     default:
                         this.ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M) Cage(C)`, 700, (yPos += 30));
                         break;
-                }
-                break;
-            case CmdState.Color:
-                {
-                    const prevStyle = this.ctx.fillStyle;
-                    this.ctx.fillStyle = this.inputBuffer;
-                    this.ctx.fillText(`Color: [${this.inputBuffer}]`, 700, (yPos += 30));
-                    this.ctx.fillStyle = prevStyle;
                 }
                 break;
             case CmdState.A:
