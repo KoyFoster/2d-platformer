@@ -209,6 +209,22 @@ export class DevTools {
         return !!this.selectedHashMap[i];
     }
 
+    promptForChange(property: string, key: keyof EntityData) {
+        if (this.focused) {
+            const data = this.focused.d[key] as Vector;
+            let x = window.prompt(`Enter x ${property}`, data.x.toString(10)) as number | string | null;
+            if (x !== null) x = toNumber(x);
+            let y = window.prompt(`Enter y ${property}`, data.y.toString(10)) as number | string | null;
+            if (y !== null) y = toNumber(y);
+
+            if (((x !== null || y !== null) && x !== data.x) || y !== data.y) {
+                this.appendToHistory();
+                const value = { x: x !== null ? x : data.x, y: y !== null ? y : data.y, z: data.z } as Vector;
+                this.changeEntityProperty(value, key);
+            }
+        }
+    }
+
     // Commands
     commands(e: KeyboardEvent) {
         this.subCommands(e);
@@ -229,73 +245,6 @@ export class DevTools {
             localStorage.setItem('showGrid', this.showGrid ? 'true' : 'false');
             return;
         }
-
-        if (this.subCmd === SubCmd.NONE && this.cmdState === CmdState.NONE)
-            switch (e.key.toLowerCase()) {
-                case 't':
-                    this.cmdState = CmdState.T;
-                    break;
-                case 'a':
-                    // this.cmdState = CmdState.A;
-                    break;
-                case 'p':
-                    this.cmdState = CmdState.P;
-                    break;
-                case 'v':
-                    this.cmdState = CmdState.V;
-                    if (this.focused) {
-                        let x = window.prompt('Enter x velocity', this.focused.d.vel.x.toString(10)) as number | string | null;
-                        if (x !== null) x = toNumber(x);
-                        let y = window.prompt('Enter y velocity', this.focused.d.vel.y.toString(10)) as number | string | null;
-                        if (y !== null) y = toNumber(y);
-
-                        if (((x !== null || y !== null) && x !== this.focused.d.vel.x) || y !== this.focused.d.vel.y) {
-                            this.appendToHistory();
-                            const value = { x: x !== null ? x : this.focused.d.vel.x, y: y !== null ? y : this.focused.d.vel.y, z: this.focused.d.vel.z } as Vector;
-                            this.changeEntityProperty(value, 'vel');
-                        }
-                    }
-                    break;
-                case 's':
-                    this.cmdState = CmdState.S;
-                    break;
-                case 'r':
-                    this.reload();
-                    break;
-                case 'c':
-                    if (e.shiftKey) {
-                        if (this.cmdState === CmdState.NONE) {
-                            this.saveToConsole();
-                        }
-                    } else if (this.focused) {
-                        let validColor = false as boolean;
-                        let buffer = '' as string | null;
-                        while (validColor === false && buffer !== null) {
-                            buffer = window.prompt('Enter Color', this.focused.d.color);
-
-                            // validate color
-                            if (buffer !== null) {
-                                const lastStyle = this.ctx.fillStyle;
-                                this.ctx.fillStyle = buffer;
-
-                                if (this.ctx.fillStyle === buffer) {
-                                    this.appendToHistory();
-                                    this.changeEntityProperty(buffer, 'color');
-                                    validColor = true;
-                                } else alert('invalid color');
-
-                                console.log('this.ctx.fillStyle:', this.ctx.fillStyle);
-                                this.ctx.fillStyle = lastStyle;
-                            }
-                        }
-                    }
-                    break;
-                case 'enter':
-                case 'escape':
-                    break;
-                default:
-                    break;
-            }
 
         // drag states release
         this.entDrag.setHorizDrag = false;
@@ -558,78 +507,23 @@ export class DevTools {
         }
     }
 
-    showCommands() {
+    showInfo() {
         this.ctx.font = '24px Ariel';
         let yPos = 20;
         this.ctx.fillText(`Commands:`, 650, (yPos += 30));
-        switch (this.cmdState) {
-            case CmdState.NONE:
-                this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
+        this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
 
-                if (this.focused !== null) {
-                    this.ctx.fillText(`T: Set Entity Type: ${this.focused.d.type}`, 700, (yPos += 30));
-                    this.ctx.fillText(`A: set Anchor: [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
-                    this.ctx.fillText(`P: set Position: [${this.focused.d.pos.x}, ${this.focused.d.pos.y}]`, 700, (yPos += 30));
-                    this.ctx.fillText(`V: set Velocity${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, 700, (yPos += 30));
-                    this.ctx.fillText(`S: set Size: [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
-                    const prevStyle = this.ctx.fillStyle;
-                    this.ctx.fillStyle = this.focused.d.color;
-                    this.ctx.fillText(`Color: ${this.focused.d.color}`, 700, (yPos += 30));
-                    this.ctx.fillStyle = prevStyle;
-                }
-                this.ctx.fillText(`R: reload`, 700, (yPos += 30));
-                this.ctx.fillText(`C: cancel settings`, 700, (yPos += 30));
+        if (this.focused !== null) {
+            this.ctx.fillText(` - Type(T): ${this.focused.d.type}`, 700, (yPos += 30));
+            this.ctx.fillText(` - Position(P): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}] Anchor(A): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
+            this.ctx.fillText(` - Size(S): [${this.focused.d.size.x}, ${this.focused.d.size.y}] Velocity(V)${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, 700, (yPos += 30));
 
-                break;
-            case CmdState.T:
-                switch (this.subCmd) {
-                    default:
-                        this.ctx.fillText(`T: Platform(P) HurtBox(H) MotionHB(M) Cage(C)`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            case CmdState.A:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (this.focused) this.vectorMsgTemplate('P', true, this.focused.d.anchor, (yPos += 30));
-                        break;
-                    case SubCmd.Y:
-                        if (this.focused) this.vectorMsgTemplate('P', false, this.focused.d.anchor, (yPos += 30));
-                        break;
-                    default:
-                        if (this.focused) this.ctx.fillText(`A: enter x(X), enter y(Y): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            case CmdState.P:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (this.focused) this.vectorMsgTemplate('P', true, this.focused.d.pos, (yPos += 30));
-                        break;
-                    case SubCmd.Y:
-                        if (this.focused) this.vectorMsgTemplate('P', false, this.focused.d.pos, (yPos += 30));
-                        break;
-                    default:
-                        if (this.focused) this.ctx.fillText(`P: enter x(X), enter y(Y): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}]`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            case CmdState.S:
-                switch (this.subCmd) {
-                    case SubCmd.X:
-                        if (this.focused) this.vectorMsgTemplate('S', true, this.focused.d.size, (yPos += 30));
-                        break;
-                    case SubCmd.Y:
-                        if (this.focused) this.vectorMsgTemplate('S', false, this.focused.d.size, (yPos += 30));
-                        break;
-                    default:
-                        if (this.focused) this.ctx.fillText(`S: enter x(X), enter y(Y): [${this.focused.d.size.x}, ${this.focused.d.size.y}]`, 700, (yPos += 30));
-                        break;
-                }
-                break;
-            default:
-                break;
+            const prevStyle = this.ctx.fillStyle;
+            this.ctx.fillStyle = this.focused.d.color;
+            this.ctx.fillText(` - Color: ${this.focused.d.color}`, 700, (yPos += 30));
+            this.ctx.fillStyle = prevStyle;
         }
+        this.ctx.fillText(`Reload(R)`, 700, (yPos += 30));
     }
 
     vectorMsgTemplate(letter: string, isx: boolean, val: Vector | null, yPos: number) {
@@ -847,7 +741,7 @@ export class DevTools {
         this.ctx.translate(-this.cam.x, -this.cam.y);
         this.ctx.setTransform(1, 0, 0, 1, 0, 0); // do this specifically for resetting scale
 
-        this.showCommands();
+        this.showInfo();
     }
 
     onScroll(e: WheelEvent) {
@@ -963,6 +857,11 @@ export class DevTools {
                 case 'c':
                     if (this.focused !== null) this.clipboard = [this.focused.d];
                     break;
+                // copy to console
+                case 'C':
+                    e.preventDefault();
+                    this.saveToConsole();
+                    break;
                 // cut
                 case 'x':
                     if (this.selected.length) {
@@ -1004,6 +903,47 @@ export class DevTools {
                         e.preventDefault();
                         this.clearAll();
                     }
+                    break;
+                default:
+                    break;
+            }
+        } else if (e.shiftKey) {
+            switch (e.key) {
+                case 'C':
+                    if (this.focused) {
+                        let validColor = false as boolean;
+                        let buffer = '' as string | null;
+                        while (validColor === false && buffer !== null) {
+                            buffer = window.prompt('Enter Color', this.focused.d.color);
+                            // validate color
+                            if (buffer !== null) {
+                                const lastStyle = this.ctx.fillStyle;
+                                this.ctx.fillStyle = buffer;
+
+                                if (this.ctx.fillStyle === buffer) {
+                                    this.appendToHistory();
+                                    this.changeEntityProperty(buffer, 'color');
+                                    validColor = true;
+                                } else alert('invalid color');
+                                this.ctx.fillStyle = lastStyle;
+                            }
+                        }
+                    }
+                    break;
+                case 'A':
+                    this.promptForChange('anchor', 'anchor');
+                    break;
+                case 'P':
+                    this.promptForChange('position', 'pos');
+                    break;
+                case 'V':
+                    this.promptForChange('velocity', 'vel');
+                    break;
+                case 'S':
+                    this.promptForChange('size', 'size');
+                    break;
+                case 'R':
+                    this.reload();
                     break;
                 default:
                     break;
