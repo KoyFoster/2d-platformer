@@ -10,7 +10,6 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 console.log('styles:', styles);
 root.render(
     <React.StrictMode>
-        <div className={styles.asd}>SAMPLE TEXT</div>
         <App />
     </React.StrictMode >
 );
