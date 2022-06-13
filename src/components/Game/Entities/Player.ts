@@ -1,6 +1,5 @@
 import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__, __terminal__ } from '../Lib';
 import { Entity } from './Entity';
-import '../../../styles/Game.css';
 
 export class Player extends Entity {
     private health = 92 as number;
@@ -196,26 +195,21 @@ export class Player extends Entity {
 
     public UI(ctx: CanvasRenderingContext2D) {
         // Healthbar
-        const x = 500;
-        const y = 640;
         const w = 250;
         const h = 50;
+        const x = ctx.canvas.width * 0.5 - w * 0.5;
+        const y = 640;
         const lostHp = this.tickDmg / this.maxHealth;
         let hp = this.health / this.maxHealth - lostHp;
         if (hp < 0) hp = 0;
 
-        // Name
-        // ctx.font = '30px Mars Needs Cunnilingus';
-        // ctx.font = '30px DotumChe';
-        // ctx.font = '30px Hachicro';
-        // ctx.font = '30px Crypt of Tomorrow';
-        // ctx.font = '30px 8bitoperator JVE';
-        // ctx.font = '30px Comic Sans MS';
-        ctx.font = '30px UndertaleSans';
+        ctx.font = '48px DeterminationMonoWeb';
         ctx.fillStyle = 'white';
-        ctx.fillText('CHAR    LV 19        HP', x - 316, y + 35);
+        // ctx.fillText('CHAR  LV 19  HP', x - 380, y + 35);
+        ctx.fillText('             HP', x - 380, y + 35);
         if (this.tickDmg) ctx.fillStyle = 'purple';
-        ctx.fillText(`KR ${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
+        // ctx.fillText(`KR ${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
+        ctx.fillText(`${this.health} / ${this.maxHealth}`, x + w + 16, y + 35);
 
         // HP backdrop
         ctx.fillStyle = 'red';
@@ -226,5 +220,6 @@ export class Player extends Entity {
         // True HP
         ctx.fillStyle = 'yellow';
         ctx.fillRect(x, y, w * hp, h);
+        ctx.font = '30px DeterminationMonoWeb';
     }
 }

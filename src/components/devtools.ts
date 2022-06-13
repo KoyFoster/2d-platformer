@@ -371,28 +371,28 @@ export class DevTools {
     }
 
     showInfo() {
-        this.ctx.font = '24px Ariel';
         let yPos = 20;
-        this.ctx.fillText(`Commands:`, 650, (yPos += 30));
-        this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, 700, (yPos += 30));
+        let xPos = 400;
+        this.ctx.fillText(`Commands:`, (xPos += 50), (yPos += 30));
+        this.ctx.fillText(`F2: Hide F4: Pause(${this.pause}) F8: Grid(${this.showGrid}) Zoom(${Math.trunc(this.cam.z * 100)}%)`, (xPos += 50), (yPos += 30));
 
         if (this.focused !== null) {
-            this.ctx.fillText(` - Add(T): HB(S1) HBM(S2) Pl{S3} GB(S4)`, 700, (yPos += 30));
-            this.ctx.fillText(` - Type(T): ${this.focused.d.type}`, 700, (yPos += 30));
-            this.ctx.fillText(` - Position(P): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}] Anchor(A): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, 700, (yPos += 30));
-            this.ctx.fillText(` - Size(S): [${this.focused.d.size.x}, ${this.focused.d.size.y}] Velocity(V)${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, 700, (yPos += 30));
+            this.ctx.fillText(` - Add(T): HB(S1) HBM(S2) Pl{S3} GB(S4)`, xPos, (yPos += 30));
+            this.ctx.fillText(` - Type(T): ${this.focused.d.type}`, xPos, (yPos += 30));
+            this.ctx.fillText(` - Position(P): [${this.focused.d.pos.x}, ${this.focused.d.pos.y}] Anchor(A): [${this.focused.d.anchor.x}, ${this.focused.d.anchor.y}]`, xPos, (yPos += 30));
+            this.ctx.fillText(` - Size(S): [${this.focused.d.size.x}, ${this.focused.d.size.y}] Velocity(V)${this.focused.d.vel ? `: [${this.focused.d.vel.x}, ${this.focused.d.vel.y}]` : ''}`, xPos, (yPos += 30));
 
             const prevStyle = this.ctx.fillStyle;
             this.ctx.fillStyle = this.focused.d.color;
-            this.ctx.fillText(` - Color: ${this.focused.d.color}`, 700, (yPos += 30));
+            this.ctx.fillText(` - Color: ${this.focused.d.color}`, xPos, (yPos += 30));
             this.ctx.fillStyle = prevStyle;
         }
-        this.ctx.fillText(`Reload(R)`, 700, (yPos += 30));
+        this.ctx.fillText(`Reload(R)`, xPos, (yPos += 30));
     }
 
     vectorMsgTemplate(letter: string, isx: boolean, val: Vector | null, yPos: number) {
-        if (isx) this.ctx.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val.y : 'NaN'}]`, 700, yPos);
-        else this.ctx.fillText(`${letter} y: type or click: [${val ? val.x : 'NaN'}, ${this.inputBuffer}]`, 700, yPos);
+        if (isx) this.ctx.fillText(`${letter} x: type or click: [${this.inputBuffer}, ${val ? val.y : 'NaN'}]`, xPos, yPos);
+        else this.ctx.fillText(`${letter} y: type or click: [${val ? val.x : 'NaN'}, ${this.inputBuffer}]`, xPos, yPos);
     }
 
     clearProperties() {

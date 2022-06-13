@@ -4,6 +4,7 @@ import { DevTools } from '../devtools';
 import seq0 from './Maps/sequences/seq_dev.json';
 import { Sequence } from './Maps/sequences';
 import { Vector } from './Lib';
+import '../../styles/Game.css';
 
 export default class Game {
     private canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -103,6 +104,7 @@ export default class Game {
     // return ctx when in debug mode
     tick = (delta: number, debug: boolean) => {
         if (this.ctx === null) return;
+        this.ctx.font = '30px DeterminationMonoWeb';
 
         // backdrop
         this.ctx.fillStyle = '#000000';
