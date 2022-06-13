@@ -1,14 +1,18 @@
+/* eslint-disable prettier/prettier */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+// eslint-disable-next-line unused-imports/no-unused-imports
 import App from './App';
 // import reportWebVitals from './reportWebVitals';
+import styles from './styles/index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+console.log('styles:', styles);
 root.render(
     <React.StrictMode>
+        <div className={styles.asd}>SAMPLE TEXT</div>
         <App />
-    </React.StrictMode>
+    </React.StrictMode >
 );
 
 // If you want to start measuring performance in your app, pass a function

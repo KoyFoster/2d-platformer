@@ -1,5 +1,6 @@
 import { HurtType, Vector, __fric__, __grav__, __jump__, __size__, __speed__, __terminal__ } from '../Lib';
 import { Entity } from './Entity';
+import '../../../styles/Game.css';
 
 export class Player extends Entity {
     private health = 92 as number;
@@ -209,7 +210,8 @@ export class Player extends Entity {
         // ctx.font = '30px Hachicro';
         // ctx.font = '30px Crypt of Tomorrow';
         // ctx.font = '30px 8bitoperator JVE';
-        ctx.font = '30px Comic Sans MS';
+        // ctx.font = '30px Comic Sans MS';
+        ctx.font = '30px UndertaleSans';
         ctx.fillStyle = 'white';
         ctx.fillText('CHAR    LV 19        HP', x - 316, y + 35);
         if (this.tickDmg) ctx.fillStyle = 'purple';

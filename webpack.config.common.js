@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
@@ -21,15 +22,27 @@ module.exports = {
             {
                 test: /\.css$/,
                 exclude: /node_modules/,
-                use: {
-                    loader: 'css-loader',
-                },
+                use: [
+                    'style-loader',
+                    {
+                        loader: 'css-modules-typescript-loader',
+                        options: {
+                            mode: process.env.CI ? 'verify' : 'emit',
+                        },
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true,
+                        },
+                    },
+                ],
             },
         ],
     },
 
     resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.json'],
+        extensions: ['.css', '.ts', '.tsx', '.js', '.json'],
     },
 
     output: {

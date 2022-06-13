@@ -1,0 +1,32 @@
+
+@font-face {
+    font-family: 'DeterminationMonoWeb';
+    font-style: normal;
+    font-weight: normal;
+    src: local('DeterminationMonoWeb'),
+      url(../assets/fonts/undertale/DeterminationMonoWeb.ttf) format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'DeterminationSansWeb';
+    font-style: normal;
+    font-weight: normal;
+    src: local('DeterminationSansWeb'),
+      url(../assets/fonts/undertale/DeterminationSansWeb.ttf) format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'UndertalePapyrus';
+    font-style: normal;
+    font-weight: normal;
+    src: local('UndertalePapyrus'),
+      url(../assets/fonts/undertale/UndertalePapyrus.ttf) format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'UndertaleSans';
+    font-style: normal;
+    font-weight: normal;
+    src: local('UndertaleSans'),
+      url(../assets/fonts/undertale/UndertaleSans.ttf) format('truetype');
+  }

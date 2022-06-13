@@ -71,7 +71,7 @@ export class FrameRate {
                 // UI
                 // draw relative to camera
                 if (ctx !== null) {
-                    ctx.font = '30px Ariel';
+                    // ctx.font = '30px Ariel';
                     ctx.fillText(`FPS:${this.fps}`, 33, 50);
                     ctx.fillText(`Delta:${this.delta}`, 33, 80);
                 }
