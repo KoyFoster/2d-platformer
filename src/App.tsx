@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import './styles/App.css';
 import { Canvas, gameInit, renderLoop } from './components';
+import { Popup } from './components/Popup/popup';
 
 function App() {
     // After render
@@ -21,6 +22,7 @@ function App() {
         <div className="App">
             <header className="App-header">
                 <Canvas id="game-canvas" width={1280} height={720} />
+                <Popup />
             </header>
         </div>
     );
