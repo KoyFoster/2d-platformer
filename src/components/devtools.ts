@@ -33,7 +33,7 @@ export class DevTools {
 
     mouse = { x: 0, y: 0, z: 0 } as Vector;
 
-    public hide = false as boolean;
+    public hide = true as boolean;
 
     pause = false as boolean;
 
@@ -545,7 +545,7 @@ export class DevTools {
                 lifetime: 10000,
                 position: { x: 0, y: 120, z: 0 },
                 entities: this.data,
-            })
+            }),
         );
     }
 
